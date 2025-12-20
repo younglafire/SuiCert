@@ -62,7 +62,7 @@ export default function CreateCourseForm() {
     try {
       setUploadProgress('Uploading to Walrus...');
 
-      const response = await fetch(`${WALRUS_PUBLISHER_URL}/v1/store?epochs=5`, {
+      const response = await fetch(`${WALRUS_PUBLISHER_URL}/v1/blobs?epochs=5`, {
         method: 'PUT',
         body: file,
       });
