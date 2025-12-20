@@ -15,9 +15,6 @@ module suicert::academy_tests {
     const COURSE_PRICE: u64 = 1_000_000_000; // 1 SUI
     const INITIAL_BALANCE: u64 = 10_000_000_000; // 10 SUI
 
-    // Error codes from the main module
-    const EInsufficientPayment: u64 = 0;
-
     // === Helper Functions ===
 
     fun create_test_course(scenario: &mut Scenario) {
@@ -98,7 +95,7 @@ module suicert::academy_tests {
         // Student enrolls with more than required payment
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            let mut course = ts::take_shared<Course>(&scenario);
+            let course = ts::take_shared<Course>(&scenario);
             let mut payment = coin::mint_for_testing<SUI>(INITIAL_BALANCE, ts::ctx(&mut scenario));
             
             academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
@@ -130,7 +127,7 @@ module suicert::academy_tests {
         // Student tries to enroll with insufficient payment
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            let mut course = ts::take_shared<Course>(&scenario);
+            let course = ts::take_shared<Course>(&scenario);
             let mut payment = coin::mint_for_testing<SUI>(COURSE_PRICE - 1, ts::ctx(&mut scenario));
             
             // This should abort with EInsufficientPayment
@@ -153,7 +150,7 @@ module suicert::academy_tests {
         // Student 1 enrolls
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            let mut course = ts::take_shared<Course>(&scenario);
+            let course = ts::take_shared<Course>(&scenario);
             let mut payment = coin::mint_for_testing<SUI>(COURSE_PRICE, ts::ctx(&mut scenario));
             
             academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
@@ -165,7 +162,7 @@ module suicert::academy_tests {
         // Student 2 enrolls
         ts::next_tx(&mut scenario, STUDENT2);
         {
-            let mut course = ts::take_shared<Course>(&scenario);
+            let course = ts::take_shared<Course>(&scenario);
             let mut payment = coin::mint_for_testing<SUI>(COURSE_PRICE, ts::ctx(&mut scenario));
             
             academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
@@ -198,7 +195,7 @@ module suicert::academy_tests {
         // Student enrolls
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            let mut course = ts::take_shared<Course>(&scenario);
+            let course = ts::take_shared<Course>(&scenario);
             let mut payment = coin::mint_for_testing<SUI>(COURSE_PRICE, ts::ctx(&mut scenario));
             
             academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
@@ -237,7 +234,7 @@ module suicert::academy_tests {
         // Student enrolls with zero payment
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            let mut course = ts::take_shared<Course>(&scenario);
+            let course = ts::take_shared<Course>(&scenario);
             let mut payment = coin::mint_for_testing<SUI>(0, ts::ctx(&mut scenario));
             
             academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
