@@ -4,6 +4,7 @@ module suicert::academy_tests {
     use sui::test_scenario::{Self as ts, Scenario};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
+    use sui::test_utils;
     use std::string;
 
     // Test addresses
@@ -14,6 +15,9 @@ module suicert::academy_tests {
     // Test constants
     const COURSE_PRICE: u64 = 1_000_000_000; // 1 SUI
     const INITIAL_BALANCE: u64 = 10_000_000_000; // 10 SUI
+
+    // Error codes
+    const EInsufficientPayment: u64 = 0;
 
     // === Helper Functions ===
 
@@ -27,6 +31,14 @@ module suicert::academy_tests {
                 string::utf8(b"walrus://blob123456"),
                 ts::ctx(scenario),
             );
+        };
+    }
+
+    fun mint_sui_for_testing(scenario: &mut Scenario, recipient: address, amount: u64) {
+        ts::next_tx(scenario, recipient);
+        {
+            let coin = coin::mint_for_testing<SUI>(amount, ts::ctx(scenario));
+            transfer::public_transfer(coin, recipient);
         };
     }
 
@@ -210,6 +222,50 @@ module suicert::academy_tests {
             let payment_coin = ts::take_from_address<Coin<SUI>>(&scenario, INSTRUCTOR);
             assert!(coin::value(&payment_coin) == COURSE_PRICE, 0);
             ts::return_to_address(INSTRUCTOR, payment_coin);
+        };
+
+        ts::end(scenario);
+    }
+
+    #[test]
+    fun test_instructor_receives_multiple_payments() {
+        let mut scenario = ts::begin(INSTRUCTOR);
+        
+        // Create a course
+        create_test_course(&mut scenario);
+
+        // Student 1 enrolls
+        ts::next_tx(&mut scenario, STUDENT1);
+        {
+            let course = ts::take_shared<Course>(&scenario);
+            let mut payment = coin::mint_for_testing<SUI>(COURSE_PRICE, ts::ctx(&mut scenario));
+            academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
+            coin::destroy_zero(payment);
+            ts::return_shared(course);
+        };
+
+        // Student 2 enrolls
+        ts::next_tx(&mut scenario, STUDENT2);
+        {
+            let course = ts::take_shared<Course>(&scenario);
+            let mut payment = coin::mint_for_testing<SUI>(COURSE_PRICE, ts::ctx(&mut scenario));
+            academy::enroll(&course, &mut payment, ts::ctx(&mut scenario));
+            coin::destroy_zero(payment);
+            ts::return_shared(course);
+        };
+
+        // Verify instructor received BOTH payments (2 x COURSE_PRICE)
+        ts::next_tx(&mut scenario, INSTRUCTOR);
+        {
+            // Instructor should have 2 coin objects
+            let payment_coin1 = ts::take_from_address<Coin<SUI>>(&scenario, INSTRUCTOR);
+            assert!(coin::value(&payment_coin1) == COURSE_PRICE, 0);
+            
+            let payment_coin2 = ts::take_from_address<Coin<SUI>>(&scenario, INSTRUCTOR);
+            assert!(coin::value(&payment_coin2) == COURSE_PRICE, 1);
+            
+            ts::return_to_address(INSTRUCTOR, payment_coin1);
+            ts::return_to_address(INSTRUCTOR, payment_coin2);
         };
 
         ts::end(scenario);
