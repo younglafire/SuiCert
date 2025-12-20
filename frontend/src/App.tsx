@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import { ConnectButton } from "@mysten/dapp-kit";
 import CreateCourseForm from "./components/CreateCourseForm";
 import CourseList from "./components/CourseList";
+import MyCourses from "./components/MyCourses";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<"courses" | "create">("courses");
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb" }}>
@@ -23,14 +26,16 @@ function App() {
           justifyContent: "space-between",
           alignItems: "center"
         }}>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#1f2937" }}>
-            🎓 SuiCert Academy
-          </h1>
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#1f2937" }}>
+              🎓 SuiCert Academy
+            </h1>
+          </Link>
           <ConnectButton />
         </div>
       </header>
 
-      {/* Navigation Tabs */}
+      {/* Navigation */}
       <div style={{ 
         backgroundColor: "white", 
         borderBottom: "1px solid #e5e7eb",
@@ -38,44 +43,58 @@ function App() {
       }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
           <nav style={{ display: "flex", gap: "2rem" }}>
-            <button
-              onClick={() => setActiveTab("courses")}
+            <Link
+              to="/"
               style={{
                 padding: "1rem 0",
                 fontSize: "0.875rem",
                 fontWeight: "500",
-                color: activeTab === "courses" ? "#2563eb" : "#6b7280",
-                borderBottom: activeTab === "courses" ? "2px solid #2563eb" : "2px solid transparent",
-                backgroundColor: "transparent",
-                border: "none",
-                cursor: "pointer",
+                color: isActive("/") ? "#2563eb" : "#6b7280",
+                borderBottom: isActive("/") ? "2px solid #2563eb" : "2px solid transparent",
+                textDecoration: "none",
                 transition: "all 0.2s"
               }}
             >
               📚 Khóa học
-            </button>
-            <button
-              onClick={() => setActiveTab("create")}
+            </Link>
+            <Link
+              to="/my-courses"
               style={{
                 padding: "1rem 0",
                 fontSize: "0.875rem",
                 fontWeight: "500",
-                color: activeTab === "create" ? "#2563eb" : "#6b7280",
-                borderBottom: activeTab === "create" ? "2px solid #2563eb" : "2px solid transparent",
-                backgroundColor: "transparent",
-                border: "none",
-                cursor: "pointer",
+                color: isActive("/my-courses") ? "#2563eb" : "#6b7280",
+                borderBottom: isActive("/my-courses") ? "2px solid #2563eb" : "2px solid transparent",
+                textDecoration: "none",
                 transition: "all 0.2s"
               }}
             >
-              ➕ Tạo khóa học
-            </button>
+              📖 Khóa học của bạn
+            </Link>
+            <Link
+              to="/create"
+              style={{
+                padding: "1rem 0",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: isActive("/create") ? "#2563eb" : "#6b7280",
+                borderBottom: isActive("/create") ? "2px solid #2563eb" : "2px solid transparent",
+                textDecoration: "none",
+                transition: "all 0.2s"
+              }}
+            >
+              ➕ Đăng khóa học
+            </Link>
           </nav>
         </div>
       </div>
 
       <main style={{ padding: "2rem" }}>
-        {activeTab === "courses" ? <CourseList /> : <CreateCourseForm />}
+        <Routes>
+          <Route path="/" element={<CourseList />} />
+          <Route path="/my-courses" element={<MyCourses />} />
+          <Route path="/create" element={<CreateCourseForm />} />
+        </Routes>
       </main>
 
       {/* Footer */}

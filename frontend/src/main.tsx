@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "@mysten/dapp-kit/dist/index.css"; // Import CSS của ví
 import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { getFullnodeUrl } from "@mysten/sui/client";
@@ -15,12 +16,14 @@ const networks = {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <SuiClientProvider networks={networks} defaultNetwork="testnet">
-        <WalletProvider>
-          <App />
-        </WalletProvider>
-      </SuiClientProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <SuiClientProvider networks={networks} defaultNetwork="testnet">
+          <WalletProvider>
+            <App />
+          </WalletProvider>
+        </SuiClientProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
