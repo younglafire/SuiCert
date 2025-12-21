@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
 
@@ -38,6 +38,61 @@ export default function CourseModal({ course, hasAccess, onClose, onEnrollSucces
 
   const [enrolling, setEnrolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // ===========================
+  // Video Fetching - Fetch video blob from Walrus and create object URL
+  // ===========================
+  useEffect(() => {
+    if (!hasAccess || !course.walrus_blob_id) {
+      return;
+    }
+
+    let objectUrl: string | null = null;
+
+    const fetchVideo = async () => {
+      try {
+        setVideoLoading(true);
+        setVideoError(null);
+
+        // Fetch the video from Walrus aggregator
+        const response = await fetch(`${WALRUS_AGGREGATOR_URL}/v1/blobs/${course.walrus_blob_id}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch video: ${response.statusText}`);
+        }
+
+        // Get the blob with proper MIME type
+        const blob = await response.blob();
+        
+        // Create a new blob with video/mp4 MIME type if not already set
+        const videoBlob = blob.type.startsWith('video/') 
+          ? blob 
+          : new Blob([blob], { type: 'video/mp4' });
+
+        // Create object URL for the video
+        objectUrl = URL.createObjectURL(videoBlob);
+        setVideoUrl(objectUrl);
+        setVideoLoading(false);
+      } catch (err) {
+        console.error('Video fetch error:', err);
+        setVideoError(err instanceof Error ? err.message : 'Failed to load video');
+        setVideoLoading(false);
+      }
+    };
+
+    fetchVideo();
+
+    // Cleanup: revoke object URL when component unmounts or video changes
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [hasAccess, course.walrus_blob_id]);
 
   // ===========================
   // Enroll Function
@@ -102,10 +157,6 @@ export default function CourseModal({ course, hasAccess, onClose, onEnrollSucces
     return priceInSui.toFixed(2);
   };
 
-  const getVideoUrl = (): string => {
-    return `${WALRUS_AGGREGATOR_URL}/v1/${course.walrus_blob_id}`;
-  };
-
   // ===========================
   // Render
   // ===========================
@@ -130,15 +181,37 @@ export default function CourseModal({ course, hasAccess, onClose, onEnrollSucces
           {/* Video Player or Lock Screen */}
           {hasAccess ? (
             <div className="mb-6">
-              <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                <video
-                  controls
-                  className="w-full h-full"
-                  src={getVideoUrl()}
-                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450'%3E%3Crect fill='%23000' width='800' height='450'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-family='sans-serif' font-size='24'%3EKhóa học video%3C/text%3E%3C/svg%3E"
-                >
-                  Trình duyệt của bạn không hỗ trợ video.
-                </video>
+              <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden relative">
+                {videoLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                    <div className="text-center">
+                      <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                      <p className="text-white">Đang tải video...</p>
+                    </div>
+                  </div>
+                )}
+                {videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                    <div className="text-center px-4">
+                      <svg className="h-16 w-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-white font-semibold mb-2">Không thể tải video</p>
+                      <p className="text-gray-400 text-sm">{videoError}</p>
+                    </div>
+                  </div>
+                )}
+                {videoUrl && !videoLoading && !videoError && (
+                  <video
+                    ref={videoRef}
+                    controls
+                    className="w-full h-full"
+                    src={videoUrl}
+                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 450'%3E%3Crect fill='%23000' width='800' height='450'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fff' font-family='sans-serif' font-size='24'%3EKhóa học video%3C/text%3E%3C/svg%3E"
+                  >
+                    Trình duyệt của bạn không hỗ trợ video.
+                  </video>
+                )}
               </div>
               <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center">
