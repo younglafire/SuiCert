@@ -1,6 +1,6 @@
 #[test_only]
 module suicert::academy_tests {
-    use suicert::academy::{Self, Course, CourseCertificate};
+    use suicert::academy::{Self, Course, CourseCertificate, CourseTicket, TeacherProfile};
     use sui::test_scenario::{Self as ts, Scenario};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
@@ -18,19 +18,40 @@ module suicert::academy_tests {
 
     // Error codes
     const EInsufficientPayment: u64 = 0;
+    const ENotProfileOwner: u64 = 3;
 
     // === Helper Functions ===
 
-    fun create_test_course(scenario: &mut Scenario) {
+    fun create_teacher_profile(scenario: &mut Scenario) {
         ts::next_tx(scenario, INSTRUCTOR);
         {
+            academy::create_teacher_profile(
+                string::utf8(b"walrus://avatar123"),
+                string::utf8(b"Experienced blockchain developer with 5+ years in Move"),
+                string::utf8(b"email@example.com, twitter.com/teacher"),
+                ts::ctx(scenario),
+            );
+        };
+    }
+
+    fun create_test_course(scenario: &mut Scenario) {
+        // First create teacher profile
+        create_teacher_profile(scenario);
+        
+        // Then create course
+        ts::next_tx(scenario, INSTRUCTOR);
+        {
+            let profile = ts::take_from_sender<TeacherProfile>(scenario);
             academy::create_course(
+                &profile,
                 string::utf8(b"Sui Move Masterclass"),
                 string::utf8(b"Learn advanced Move programming on Sui"),
                 COURSE_PRICE,
                 string::utf8(b"walrus://blob123456"),
+                string::utf8(b"walrus://coursedata789"),
                 ts::ctx(scenario),
             );
+            ts::return_to_sender(scenario, profile);
         };
     }
 
@@ -58,7 +79,8 @@ module suicert::academy_tests {
             
             assert!(academy::get_price(&course) == COURSE_PRICE, 0);
             assert!(academy::get_instructor(&course) == INSTRUCTOR, 1);
-            assert!(academy::get_walrus_blob_id(&course) == string::utf8(b"walrus://blob123456"), 2);
+            assert!(academy::get_thumbnail_blob_id(&course) == string::utf8(b"walrus://blob123456"), 2);
+            assert!(academy::get_course_data_blob_id(&course) == string::utf8(b"walrus://coursedata789"), 3);
             
             ts::return_shared(course);
         };
@@ -88,10 +110,10 @@ module suicert::academy_tests {
             ts::return_shared(course);
         };
 
-        // Verify certificate was minted to student
+        // Verify ticket was issued to student
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            assert!(ts::has_most_recent_for_address<CourseCertificate>(STUDENT1), 1);
+            assert!(ts::has_most_recent_for_address<CourseTicket>(STUDENT1), 1);
         };
 
         ts::end(scenario);
@@ -119,10 +141,10 @@ module suicert::academy_tests {
             ts::return_shared(course);
         };
 
-        // Verify certificate was minted
+        // Verify ticket was issued
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            assert!(ts::has_most_recent_for_address<CourseCertificate>(STUDENT1), 1);
+            assert!(ts::has_most_recent_for_address<CourseTicket>(STUDENT1), 1);
         };
 
         ts::end(scenario);
@@ -183,15 +205,15 @@ module suicert::academy_tests {
             ts::return_shared(course);
         };
 
-        // Verify both students have certificates
+        // Verify both students have tickets
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            assert!(ts::has_most_recent_for_address<CourseCertificate>(STUDENT1), 0);
+            assert!(ts::has_most_recent_for_address<CourseTicket>(STUDENT1), 0);
         };
 
         ts::next_tx(&mut scenario, STUDENT2);
         {
-            assert!(ts::has_most_recent_for_address<CourseCertificate>(STUDENT2), 1);
+            assert!(ts::has_most_recent_for_address<CourseTicket>(STUDENT2), 1);
         };
 
         ts::end(scenario);
@@ -275,16 +297,23 @@ module suicert::academy_tests {
     fun test_free_course() {
         let mut scenario = ts::begin(INSTRUCTOR);
         
+        // Create teacher profile first
+        create_teacher_profile(&mut scenario);
+
         // Create a free course (price = 0)
         ts::next_tx(&mut scenario, INSTRUCTOR);
         {
+            let profile = ts::take_from_sender<TeacherProfile>(&scenario);
             academy::create_course(
+                &profile,
                 string::utf8(b"Free Introduction Course"),
                 string::utf8(b"A free course for beginners"),
                 0, // Free course
                 string::utf8(b"walrus://free_blob"),
+                string::utf8(b"walrus://free_coursedata"),
                 ts::ctx(&mut scenario),
             );
+            ts::return_to_sender(&scenario, profile);
         };
 
         // Student enrolls with zero payment
@@ -299,10 +328,10 @@ module suicert::academy_tests {
             ts::return_shared(course);
         };
 
-        // Verify certificate was minted
+        // Verify ticket was issued
         ts::next_tx(&mut scenario, STUDENT1);
         {
-            assert!(ts::has_most_recent_for_address<CourseCertificate>(STUDENT1), 0);
+            assert!(ts::has_most_recent_for_address<CourseTicket>(STUDENT1), 0);
         };
 
         ts::end(scenario);
@@ -324,11 +353,121 @@ module suicert::academy_tests {
             assert!(academy::get_price(&course) == COURSE_PRICE, 0);
             assert!(academy::get_instructor(&course) == INSTRUCTOR, 1);
             assert!(
-                academy::get_walrus_blob_id(&course) == string::utf8(b"walrus://blob123456"), 
+                academy::get_thumbnail_blob_id(&course) == string::utf8(b"walrus://blob123456"), 
                 2
+            );
+            assert!(
+                academy::get_course_data_blob_id(&course) == string::utf8(b"walrus://coursedata789"),
+                3
             );
             
             ts::return_shared(course);
+        };
+
+        ts::end(scenario);
+    }
+
+    #[test]
+    fun test_create_teacher_profile() {
+        let mut scenario = ts::begin(INSTRUCTOR);
+        
+        // Create teacher profile
+        create_teacher_profile(&mut scenario);
+
+        // Verify profile was created and transferred to instructor
+        ts::next_tx(&mut scenario, INSTRUCTOR);
+        {
+            let profile = ts::take_from_sender<TeacherProfile>(&scenario);
+            
+            assert!(academy::get_profile_owner(&profile) == INSTRUCTOR, 0);
+            assert!(academy::get_profile_avatar_blob_id(&profile) == string::utf8(b"walrus://avatar123"), 1);
+            assert!(academy::get_profile_about(&profile) == string::utf8(b"Experienced blockchain developer with 5+ years in Move"), 2);
+            assert!(academy::get_profile_contacts(&profile) == string::utf8(b"email@example.com, twitter.com/teacher"), 3);
+            
+            ts::return_to_sender(&scenario, profile);
+        };
+
+        ts::end(scenario);
+    }
+
+    #[test]
+    fun test_update_teacher_profile() {
+        let mut scenario = ts::begin(INSTRUCTOR);
+        
+        // Create teacher profile
+        create_teacher_profile(&mut scenario);
+
+        // Update profile
+        ts::next_tx(&mut scenario, INSTRUCTOR);
+        {
+            let mut profile = ts::take_from_sender<TeacherProfile>(&scenario);
+            
+            academy::update_teacher_profile(
+                &mut profile,
+                string::utf8(b"walrus://avatar456"),
+                string::utf8(b"Updated: Expert in Move and Rust"),
+                string::utf8(b"newemail@example.com, linkedin.com/teacher"),
+                ts::ctx(&mut scenario),
+            );
+            
+            // Verify updates
+            assert!(academy::get_profile_avatar_blob_id(&profile) == string::utf8(b"walrus://avatar456"), 0);
+            assert!(academy::get_profile_about(&profile) == string::utf8(b"Updated: Expert in Move and Rust"), 1);
+            assert!(academy::get_profile_contacts(&profile) == string::utf8(b"newemail@example.com, linkedin.com/teacher"), 2);
+            
+            ts::return_to_sender(&scenario, profile);
+        };
+
+        ts::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = suicert::academy::ENotProfileOwner)]
+    fun test_update_profile_not_owner() {
+        let mut scenario = ts::begin(INSTRUCTOR);
+        
+        // Create teacher profile
+        create_teacher_profile(&mut scenario);
+
+        // Try to update profile from different address
+        ts::next_tx(&mut scenario, STUDENT1);
+        {
+            let mut profile = ts::take_from_address<TeacherProfile>(&scenario, INSTRUCTOR);
+            
+            // This should abort with ENotProfileOwner
+            academy::update_teacher_profile(
+                &mut profile,
+                string::utf8(b"walrus://hacked"),
+                string::utf8(b"Hacked"),
+                string::utf8(b"hacker@evil.com"),
+                ts::ctx(&mut scenario),
+            );
+            
+            ts::return_to_address(INSTRUCTOR, profile);
+        };
+
+        ts::end(scenario);
+    }
+
+    #[test]
+    fun test_course_references_profile() {
+        let mut scenario = ts::begin(INSTRUCTOR);
+        
+        // Create course with profile
+        create_test_course(&mut scenario);
+
+        // Verify course references the profile
+        ts::next_tx(&mut scenario, INSTRUCTOR);
+        {
+            let course = ts::take_shared<Course>(&scenario);
+            let profile = ts::take_from_sender<TeacherProfile>(&scenario);
+            
+            // Course should reference the profile
+            let profile_id = object::id(&profile);
+            assert!(academy::get_instructor_profile_id(&course) == profile_id, 0);
+            
+            ts::return_shared(course);
+            ts::return_to_sender(&scenario, profile);
         };
 
         ts::end(scenario);
