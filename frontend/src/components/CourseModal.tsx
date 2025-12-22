@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
-import { fetchFromWalrus, fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui, truncateAddress } from '../utils/helpers';
-import type { CourseInfo, CourseData, CourseModule, TestQuestion } from '../types/course';
+import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui, truncateAddress } from '../utils/helpers';
+import type { CourseInfo, CourseData } from '../types/course';
 
 const PACKAGE_ID = '0x122e018f7546a62957f3c7adc0afbe81830c6c1144f479d7f782292539359b64';
 const MODULE_NAME = 'academy';
@@ -399,7 +399,7 @@ export default function CourseModal({
             <div className="space-y-6">
               {/* Module Navigation */}
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {courseData.modules.map((module, index) => (
+                {courseData.modules.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentModuleIndex(index)}

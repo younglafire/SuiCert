@@ -126,7 +126,6 @@ export default function CourseCard({ course }: CourseCardProps) {
   // ===========================
   // Render
   // ===========================
-  const hasAccess = hasTicket || hasCertificate;
   const priceInSui = mistToSui(parseInt(course.price));
 
   return (
