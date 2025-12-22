@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
-import { useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
+import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { uploadToWalrus, uploadJsonToWalrus, suiToMist, suiToVnd, formatVnd } from '../utils/helpers';
 import type { CourseData, CourseModule, CourseMaterial, TestQuestion } from '../types/course';
+import CreateTeacherProfile from './CreateTeacherProfile';
 
 // Constants
 const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
@@ -31,6 +32,12 @@ interface QuestionFormData {
 export default function CreateCourseForm() {
   const currentAccount = useCurrentAccount();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
+
+  // Teacher profile state
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [teacherProfileId, setTeacherProfileId] = useState<string | null>(null);
+  const [showProfileForm, setShowProfileForm] = useState(false);
 
   // Basic course info
   const [title, setTitle] = useState('');
@@ -55,9 +62,42 @@ export default function CreateCourseForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
+  // Check if teacher has a profile
+  useEffect(() => {
+    async function checkProfile() {
+      if (!currentAccount?.address) {
+        setHasProfile(null);
+        return;
+      }
+
+      try {
+        // Query for TeacherProfile objects owned by the current account
+        const objects = await suiClient.getOwnedObjects({
+          owner: currentAccount.address,
+          filter: {
+            StructType: `${PACKAGE_ID}::${MODULE_NAME}::TeacherProfile`,
+          },
+        });
+
+        if (objects.data.length > 0) {
+          setHasProfile(true);
+          setTeacherProfileId(objects.data[0].data?.objectId || null);
+        } else {
+          setHasProfile(false);
+        }
+      } catch (error) {
+        console.error('Error checking for teacher profile:', error);
+        setHasProfile(false);
+      }
+    }
+
+    checkProfile();
+  }, [currentAccount?.address, suiClient]);
+
   // Add module
   const addModule = () => {
     setModules([...modules, { title: '', description: '', videoFile: null, materials: [] }]);
+  };
   };
 
   // Remove module
@@ -257,10 +297,15 @@ export default function CreateCourseForm() {
       setUploadProgress('Đang tạo khóa học trên blockchain...');
       const priceInMist = suiToMist(parseFloat(price));
 
+      if (!teacherProfileId) {
+        throw new Error('Không tìm thấy hồ sơ giáo viên');
+      }
+
       const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::create_course`,
         arguments: [
+          tx.object(teacherProfileId),
           tx.pure.string(title),
           tx.pure.string(description),
           tx.pure.u64(priceInMist),
@@ -324,6 +369,31 @@ export default function CreateCourseForm() {
           <p className="mt-1 text-sm text-gray-500">Vui lòng kết nối ví để tạo khóa học</p>
         </div>
       </div>
+    );
+  }
+
+  // Show loading while checking for profile
+  if (hasProfile === null) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang kiểm tra hồ sơ giáo viên...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show profile creation form if teacher doesn't have a profile
+  if (hasProfile === false || showProfileForm) {
+    return (
+      <CreateTeacherProfile
+        onProfileCreated={() => {
+          setHasProfile(null); // Trigger re-check
+          setShowProfileForm(false);
+        }}
+        onCancel={() => setShowProfileForm(false)}
+      />
     );
   }
 
