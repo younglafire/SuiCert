@@ -116,6 +116,7 @@ export default function MyCourses() {
             return {
               id: data.objectId,
               instructor: fields.instructor,
+              instructor_profile_id: fields.instructor_profile_id,
               title: fields.title,
               description: fields.description,
               price: fields.price,
