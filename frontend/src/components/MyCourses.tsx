@@ -189,16 +189,14 @@ export default function MyCourses() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Khóa học của bạn</h1>
-        <p className="text-gray-600">
-          Các khóa học bạn đã đăng ký và sở hữu chứng chỉ
-        </p>
+    <div className="course-page">
+      <div className="course-section-head">
+        <h2>Khóa học & Chứng chỉ của bạn</h2>
+        <span className="pill">NFT</span>
       </div>
 
       {courses.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+        <div className="course-empty">
           <svg
             className="mx-auto h-16 w-16 text-gray-400"
             fill="none"
@@ -212,11 +210,11 @@ export default function MyCourses() {
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
             />
           </svg>
-          <h3 className="mt-4 text-lg font-semibold text-gray-900">Bạn chưa có khóa học nào</h3>
-          <p className="mt-2 text-gray-600">Hãy đăng ký khóa học đầu tiên của bạn!</p>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">Chưa có khóa học nào</h3>
+          <p className="mt-2 text-gray-600">Đăng ký khóa học để bắt đầu học và nhận chứng chỉ Soulbound NFT!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="course-grid">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import { useNavigate } from 'react-router-dom';
 import CourseModal from './CourseModal';
 import { mistToSui, suiToVnd, formatVnd, formatSui, truncateAddress, fetchFromWalrus } from '../utils/helpers';
 import type { CourseInfo } from '../types/course';
@@ -20,6 +21,7 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
+  const navigate = useNavigate();
 
   const [hasTicket, setHasTicket] = useState(false);
   const [hasCertificate, setHasCertificate] = useState(false);
@@ -130,18 +132,18 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+      <div className="course-card">
         {/* Course Thumbnail */}
-        <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+        <div className="course-card__thumb">
           {thumbnailUrl ? (
             <img 
               src={thumbnailUrl} 
               alt={course.title}
-              className="w-full h-full object-cover"
+              className="course-card__thumb-img"
             />
           ) : (
             <svg
-              className="h-20 w-20 text-white opacity-80"
+              className="course-card__thumb-placeholder"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -157,45 +159,38 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
 
         {/* Course Info */}
-        <div className="p-6">
+        <div className="course-card__body">
           {/* Access Badge */}
           {checking ? (
-            <div className="mb-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                <div className="animate-spin h-3 w-3 border-2 border-gray-400 border-t-transparent rounded-full mr-2"></div>
-                Đang kiểm tra...
-              </span>
+            <div className="chip chip--muted loading-chip">
+              <span className="spinner" />
+              Đang kiểm tra...
             </div>
           ) : hasCertificate ? (
-            <div className="mb-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <div className="chip chip--success">
+              <svg className="chip__icon" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
                 </svg>
-                Đã hoàn thành
-              </span>
+              Đã hoàn thành
             </div>
           ) : hasTicket ? (
-            <div className="mb-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <div className="chip chip--info">
+              <svg className="chip__icon" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
                 </svg>
-                Đã đăng ký
-              </span>
+              Đã đăng ký
             </div>
           ) : (
-            <div className="mb-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="chip chip--muted">
+              <svg className="chip__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -203,20 +198,19 @@ export default function CourseCard({ course }: CourseCardProps) {
                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                   />
                 </svg>
-                Chưa đăng ký
-              </span>
+              Chưa đăng ký
             </div>
           )}
 
           {/* Title */}
-          <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
+          <h3 className="course-card__title line-clamp-2">{course.title}</h3>
 
           {/* Description */}
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">{course.description}</p>
+          <p className="course-card__desc line-clamp-3">{course.description}</p>
 
           {/* Instructor */}
-          <div className="flex items-center text-sm text-gray-500 mb-4">
-            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="course-card__meta">
+            <svg className="course-card__meta-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -228,25 +222,29 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
 
           {/* Price & CTA */}
-          <div className="flex flex-col gap-2 pt-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{formatSui(priceInSui)}</div>
-                <div className="text-sm text-gray-500">{formatVnd(suiToVnd(priceInSui))}</div>
-              </div>
-              <button
-                onClick={() => setShowModal(true)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  hasCertificate
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : hasTicket
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-purple-600 hover:bg-purple-700 text-white'
-                }`}
-              >
-                {hasCertificate ? 'Xem chứng chỉ' : hasTicket ? 'Tiếp tục học' : 'Đăng ký ngay'}
-              </button>
+          <div className="course-card__footer">
+            <div>
+              <div className="course-card__price">{formatSui(priceInSui)}</div>
+              <div className="course-card__price-sub">{formatVnd(suiToVnd(priceInSui))}</div>
             </div>
+            <button
+              onClick={() => {
+                if (hasCertificate) {
+                  navigate('/profile');
+                } else {
+                  setShowModal(true);
+                }
+              }}
+              className={`course-card__cta ${
+                hasCertificate
+                  ? 'course-card__cta--success'
+                  : hasTicket
+                  ? 'course-card__cta--info'
+                  : 'course-card__cta--primary'
+              }`}
+            >
+              {hasCertificate ? 'Xem chứng chỉ' : hasTicket ? 'Tiếp tục học' : 'Đăng ký ngay'}
+            </button>
           </div>
         </div>
       </div>

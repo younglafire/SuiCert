@@ -3,7 +3,6 @@ import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui } from '../utils/helpers';
 import type { CourseInfo, CourseData } from '../types/course';
-import TeacherProfileView from './TeacherProfileView';
 
 const PACKAGE_ID = '0x3f8e153f9ef0e59e57df15ccb51251820b0f3ba6cf5fe8a0774eb5832d1d3b5c';
 const MODULE_NAME = 'academy';
@@ -46,6 +45,9 @@ export default function CourseModal({
   const [testScore, setTestScore] = useState(0);
   const [studentName, setStudentName] = useState('');
   const [issuingCertificate, setIssuingCertificate] = useState(false);
+  
+  // Purchase count
+  const [purchaseCount, setPurchaseCount] = useState<number>(0);
 
   // Load course data from Walrus
   useEffect(() => {
@@ -71,6 +73,32 @@ export default function CourseModal({
 
     loadCourseData();
   }, [course.course_data_blob_id]);
+
+  // Load purchase count (count CourseTicket objects for this course)
+  useEffect(() => {
+    const loadPurchaseCount = async () => {
+      try {
+        // Query EnrollmentCreated events for this course
+        const events = await suiClient.queryEvents({
+          query: {
+            MoveEventType: `${PACKAGE_ID}::${MODULE_NAME}::EnrollmentCreated`,
+          },
+          limit: 1000,
+        });
+
+        // Count enrollments for this specific course
+        const count = events.data.filter((event: any) => 
+          event.parsedJson?.course_id === course.id
+        ).length;
+
+        setPurchaseCount(count);
+      } catch (err) {
+        console.error('Error loading purchase count:', err);
+      }
+    };
+
+    loadPurchaseCount();
+  }, [course.id, suiClient]);
 
   // Load video for current module
   useEffect(() => {
@@ -249,315 +277,473 @@ export default function CourseModal({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8">
-          <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4 text-gray-700">Đang tải...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !courseData) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-red-600 mb-2">Lỗi</h3>
-          <p className="text-gray-700">{error || 'Không thể tải dữ liệu khóa học'}</p>
-          <button
-            onClick={onClose}
-            className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
-            Đóng
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const priceInSui = mistToSui(parseInt(course.price));
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg max-w-5xl w-full my-8">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
-          <h2 className="text-2xl font-bold text-gray-900">{course.title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+        {/* Close Button */}
+        <button className="modal-close-btn" onClick={onClose}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
 
-        {/* Content */}
-        <div className="p-6">
-          {showTest ? (
-            /* Test Interface */
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold text-gray-900">Bài kiểm tra cuối khóa</h3>
-              
+        {loading ? (
+          <div className="modal-loading">
+            <div className="loading-spinner"></div>
+            <p>Đang tải thông tin khóa học...</p>
+          </div>
+        ) : error || !courseData ? (
+          <div className="modal-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4m0 4h.01"/>
+            </svg>
+            <p>{error || 'Không thể tải dữ liệu khóa học'}</p>
+          </div>
+        ) : showTest ? (
+            /* Test Interface - Redesigned */
+            <div className="test-modal">
+              {/* Test Header */}
+              <div className="test-header">
+                <div className="test-header-info">
+                  <h2 className="test-title">Bài kiểm tra cuối khóa</h2>
+                  <p className="test-subtitle">{course.title}</p>
+                </div>
+                <div className="test-meta">
+                  <span className="test-questions-count">
+                    {courseData.test_questions.length} câu hỏi
+                  </span>
+                  <span className="test-passing-score">
+                    Điểm đạt: {courseData.passing_score || 70}%
+                  </span>
+                </div>
+              </div>
+
               {testSubmitted && testScore >= (courseData.passing_score || 70) ? (
-                /* Passed - Show name input */
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                  <h4 className="text-lg font-semibold text-green-800 mb-2">
-                    Chúc mừng! Bạn đã đạt {testScore}%
-                  </h4>
-                  <p className="text-green-700 mb-4">
-                    Nhập tên của bạn để nhận chứng chỉ:
+                /* Passed - Success State */
+                <div className="test-result success">
+                  <div className="result-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                  <div className="result-score">{testScore}%</div>
+                  <h3 className="result-title">Xuất sắc! 🎉</h3>
+                  <p className="result-message">
+                    Bạn đã vượt qua bài kiểm tra. Nhập tên để nhận chứng chỉ Soulbound NFT.
                   </p>
-                  <input
-                    type="text"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-                    placeholder="Nguyễn Văn A"
-                    disabled={issuingCertificate}
-                  />
-                  <button
-                    onClick={handleIssueCertificate}
-                    disabled={issuingCertificate}
-                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
-                  >
-                    {issuingCertificate ? 'Đang cấp chứng chỉ...' : 'Nhận chứng chỉ'}
-                  </button>
+                  
+                  <div className="certificate-form">
+                    <label className="form-label">Tên hiển thị trên chứng chỉ</label>
+                    <input
+                      type="text"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      className="certificate-name-input"
+                      placeholder="Nguyễn Văn A"
+                      disabled={issuingCertificate}
+                    />
+                    <button
+                      onClick={handleIssueCertificate}
+                      disabled={issuingCertificate || !studentName.trim()}
+                      className="claim-certificate-btn"
+                    >
+                      {issuingCertificate ? (
+                        <>
+                          <div className="loading-spinner small"></div>
+                          Đang tạo chứng chỉ...
+                        </>
+                      ) : (
+                        <>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 15l-3-3m0 0l3-3m-3 3h12M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/>
+                          </svg>
+                          Nhận chứng chỉ NFT
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               ) : testSubmitted ? (
-                /* Failed */
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                  <h4 className="text-lg font-semibold text-red-800 mb-2">
-                    Bạn đã đạt {testScore}%
-                  </h4>
-                  <p className="text-red-700 mb-4">
-                    Điểm đạt yêu cầu: {courseData.passing_score || 70}%. Vui lòng học lại và thử lại.
+                /* Failed State */
+                <div className="test-result failed">
+                  <div className="result-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                  <div className="result-score">{testScore}%</div>
+                  <h3 className="result-title">Chưa đạt yêu cầu</h3>
+                  <p className="result-message">
+                    Bạn cần đạt ít nhất {courseData.passing_score || 70}% để nhận chứng chỉ. 
+                    Hãy ôn lại bài và thử lại nhé!
                   </p>
-                  <button
-                    onClick={() => {
-                      setTestSubmitted(false);
-                      setTestAnswers(new Array(courseData.test_questions.length).fill(-1));
-                    }}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Làm lại
-                  </button>
+                  <div className="result-actions">
+                    <button
+                      onClick={() => setShowTest(false)}
+                      className="btn-secondary"
+                    >
+                      Quay lại học
+                    </button>
+                    <button
+                      onClick={() => {
+                        setTestSubmitted(false);
+                        setTestAnswers(new Array(courseData.test_questions.length).fill(-1));
+                      }}
+                      className="btn-primary"
+                    >
+                      Làm lại bài kiểm tra
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* Test Questions */
-                <>
-                  {courseData.test_questions.map((question, qIndex) => (
-                    <div key={qIndex} className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">
-                        Câu {qIndex + 1}: {question.question}
-                      </h4>
-                      <div className="space-y-2">
-                        {question.options.map((option, oIndex) => (
-                          <label
-                            key={oIndex}
-                            className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
-                          >
-                            <input
-                              type="radio"
-                              name={`question-${qIndex}`}
-                              checked={testAnswers[qIndex] === oIndex}
-                              onChange={() => {
-                                const newAnswers = [...testAnswers];
-                                newAnswers[qIndex] = oIndex;
-                                setTestAnswers(newAnswers);
-                              }}
-                              className="w-4 h-4 mr-3"
-                            />
-                            <span>{option}</span>
-                          </label>
-                        ))}
-                      </div>
+                <div className="test-content">
+                  <div className="test-progress">
+                    <div className="progress-info">
+                      <span>Tiến độ: {testAnswers.filter(a => a !== -1).length}/{courseData.test_questions.length}</span>
                     </div>
-                  ))}
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill"
+                        style={{ width: `${(testAnswers.filter(a => a !== -1).length / courseData.test_questions.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
 
-                  <div className="flex gap-3">
+                  <div className="questions-list">
+                    {courseData.test_questions.map((question, qIndex) => (
+                      <div key={qIndex} className={`question-card ${testAnswers[qIndex] !== -1 ? 'answered' : ''}`}>
+                        <div className="question-header">
+                          <span className="question-number">Câu {qIndex + 1}</span>
+                          {testAnswers[qIndex] !== -1 && (
+                            <span className="question-answered">✓ Đã trả lời</span>
+                          )}
+                        </div>
+                        <h4 className="question-text">{question.question}</h4>
+                        <div className="options-list">
+                          {question.options.map((option, oIndex) => (
+                            <label
+                              key={oIndex}
+                              className={`option-item ${testAnswers[qIndex] === oIndex ? 'selected' : ''}`}
+                            >
+                              <div className="option-radio">
+                                <input
+                                  type="radio"
+                                  name={`question-${qIndex}`}
+                                  checked={testAnswers[qIndex] === oIndex}
+                                  onChange={() => {
+                                    const newAnswers = [...testAnswers];
+                                    newAnswers[qIndex] = oIndex;
+                                    setTestAnswers(newAnswers);
+                                  }}
+                                />
+                                <span className="radio-custom"></span>
+                              </div>
+                              <span className="option-label">{String.fromCharCode(65 + oIndex)}</span>
+                              <span className="option-text">{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="test-footer">
                     <button
                       onClick={() => setShowTest(false)}
-                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                      className="btn-back"
                     >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                      </svg>
                       Quay lại
                     </button>
                     <button
                       onClick={handleSubmitTest}
-                      className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
+                      disabled={testAnswers.some(a => a === -1)}
+                      className="btn-submit"
                     >
                       Nộp bài
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 5l7 7-7 7"/>
+                      </svg>
                     </button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           ) : hasTicket || hasCertificate ? (
-            /* Module Viewing */
-            <div className="space-y-6">
-              {/* Module Navigation */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {courseData.modules.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentModuleIndex(index)}
-                    className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap ${
-                      currentModuleIndex === index
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    Module {index + 1}
-                  </button>
-                ))}
+            /* Module Viewing - Redesigned */
+            <div className="learning-modal">
+              {/* Learning Header */}
+              <div className="learning-header">
+                <div className="learning-course-info">
+                  <h2 className="learning-title">{course.title}</h2>
+                  <div className="learning-progress">
+                    <span className="progress-text">
+                      Module {currentModuleIndex + 1} / {courseData.modules.length}
+                    </span>
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ width: `${((currentModuleIndex + 1) / courseData.modules.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {hasCertificate && (
+                  <div className="certificate-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Đã hoàn thành
+                  </div>
+                )}
               </div>
 
-              {/* Current Module */}
-              {courseData.modules[currentModuleIndex] && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {courseData.modules[currentModuleIndex].title}
+              {/* Video Section */}
+              <div className="video-section">
+                {moduleVideoUrls[currentModuleIndex] ? (
+                  <video
+                    controls
+                    className="video-player"
+                    src={moduleVideoUrls[currentModuleIndex]!}
+                  >
+                    Trình duyệt của bạn không hỗ trợ video.
+                  </video>
+                ) : (
+                  <div className="video-loading">
+                    <div className="loading-spinner"></div>
+                    <p>Đang tải video...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Module Info */}
+              <div className="module-content">
+                <div className="module-header">
+                  <h3 className="module-current-title">
+                    {courseData.modules[currentModuleIndex]?.title}
                   </h3>
-                  <p className="text-gray-600 mb-4">
-                    {courseData.modules[currentModuleIndex].description}
-                  </p>
-
-                  {/* Video Player */}
-                  {moduleVideoUrls[currentModuleIndex] ? (
-                    <video
-                      controls
-                      className="w-full rounded-lg bg-black"
-                      src={moduleVideoUrls[currentModuleIndex]!}
-                    >
-                      Trình duyệt của bạn không hỗ trợ video.
-                    </video>
-                  ) : (
-                    <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-white">Đang tải video...</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Module Materials */}
-                  {courseData.modules[currentModuleIndex].materials && 
-                   courseData.modules[currentModuleIndex].materials!.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">Tài liệu module:</h4>
-                      <div className="space-y-2">
-                        {courseData.modules[currentModuleIndex].materials!.map((material, index) => (
-                          <a
-                            key={index}
-                            href={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${material.blob_id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                          >
-                            <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span>{material.name}</span>
-                            <span className="ml-auto text-xs text-gray-500 uppercase">{material.type}</span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
+                  {courseData.modules[currentModuleIndex]?.description && (
+                    <p className="module-current-desc">
+                      {courseData.modules[currentModuleIndex].description}
+                    </p>
                   )}
                 </div>
-              )}
 
-              {/* Course Materials */}
-              {courseData.materials && courseData.materials.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Tài liệu khóa học:</h4>
-                  <div className="space-y-2">
-                    {courseData.materials.map((material, index) => (
-                      <a
+                {/* Module Navigation */}
+                <div className="modules-nav">
+                  <h4 className="modules-nav-title">Danh sách bài học</h4>
+                  <div className="modules-list">
+                    {courseData.modules.map((module, index) => (
+                      <button
                         key={index}
-                        href={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${material.blob_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                        onClick={() => setCurrentModuleIndex(index)}
+                        className={`module-nav-item ${currentModuleIndex === index ? 'active' : ''} ${index < currentModuleIndex ? 'completed' : ''}`}
                       >
-                        <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span>{material.name}</span>
-                        <span className="ml-auto text-xs text-gray-500 uppercase">{material.type}</span>
-                      </a>
+                        <div className="module-nav-number">
+                          {index < currentModuleIndex ? (
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <path d="M5 13l4 4L19 7"/>
+                            </svg>
+                          ) : (
+                            index + 1
+                          )}
+                        </div>
+                        <div className="module-nav-info">
+                          <span className="module-nav-name">{module.title}</span>
+                        </div>
+                        {currentModuleIndex === index && (
+                          <div className="module-playing">
+                            <span></span><span></span><span></span>
+                          </div>
+                        )}
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {/* Take Test Button */}
+                {/* Module Materials */}
+                {courseData.modules[currentModuleIndex]?.materials && 
+                 courseData.modules[currentModuleIndex].materials!.length > 0 && (
+                  <div className="module-materials">
+                    <h4 className="materials-title">Tài liệu bài học</h4>
+                    <div className="materials-list">
+                      {courseData.modules[currentModuleIndex].materials!.map((material, index) => (
+                        <a
+                          key={index}
+                          href={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${material.blob_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="material-item"
+                        >
+                          <svg className="material-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                          </svg>
+                          <span className="material-name">{material.name}</span>
+                          <span className="material-type">{material.type}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Footer */}
               {hasTicket && !hasCertificate && (
-                <button
-                  onClick={() => setShowTest(true)}
-                  className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold"
-                >
-                  Làm bài kiểm tra cuối khóa
-                </button>
+                <div className="learning-footer">
+                  <button
+                    onClick={() => setShowTest(true)}
+                    className="take-test-button"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    Làm bài kiểm tra cuối khóa
+                  </button>
+                </div>
               )}
             </div>
           ) : (
-            /* Purchase Interface */
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Mô tả khóa học</h3>
-                <p className="text-gray-600">{course.description}</p>
+            /* Purchase Interface - Redesigned */
+            <div className="course-purchase-modal">
+              {/* Course Header with Thumbnail */}
+              <div className="purchase-header">
+                <div className="purchase-thumbnail">
+                  <img 
+                    src={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${course.thumbnail_blob_id}`} 
+                    alt={course.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%234F46E5" width="100" height="100"/><text x="50" y="55" font-size="40" text-anchor="middle" fill="white">📚</text></svg>';
+                    }}
+                  />
+                  <div className="purchase-badge">
+                    <span className="badge-modules">{courseData.modules.length} modules</span>
+                  </div>
+                </div>
+                
+                <div className="purchase-info">
+                  <h2 className="purchase-title">{course.title}</h2>
+                  <p className="purchase-description">{course.description}</p>
+                  
+                  <div className="purchase-stats">
+                    <div className="stat-item">
+                      <svg className="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      <span><strong>{purchaseCount}</strong> học viên</span>
+                    </div>
+                    <div className="stat-item">
+                      <svg className="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                      </svg>
+                      <span><strong>{courseData.modules.length}</strong> bài học</span>
+                    </div>
+                    <div className="stat-item">
+                      <svg className="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <span>Có chứng chỉ</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nội dung khóa học</h3>
-                <div className="space-y-2">
+              {/* Course Content Preview */}
+              <div className="purchase-section">
+                <h3 className="section-title">
+                  <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                  </svg>
+                  Nội dung khóa học
+                </h3>
+                <div className="modules-preview">
                   {courseData.modules.map((module, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{module.title}</div>
+                    <div key={index} className="module-preview-item">
+                      <div className="module-number">{index + 1}</div>
+                      <div className="module-info">
+                        <div className="module-title">{module.title}</div>
                         {module.description && (
-                          <div className="text-sm text-gray-600">{module.description}</div>
+                          <div className="module-desc">{module.description}</div>
                         )}
                       </div>
+                      <svg className="module-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <TeacherProfileView
-                  profileId={course.instructor_profile_id}
-                  showContacts={hasTicket || hasCertificate}
-                />
-              </div>
-
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <div className="text-sm text-gray-600">Giá khóa học</div>
-                    <div className="text-2xl font-bold text-gray-900">{formatSui(priceInSui)}</div>
-                    <div className="text-sm text-gray-500">{formatVnd(suiToVnd(priceInSui))}</div>
+              {/* Instructor Section */}
+              {courseData.instructor_name && (
+                <div className="purchase-section instructor-section">
+                  <h3 className="section-title">
+                    <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Giảng viên
+                  </h3>
+                  <div className="instructor-card">
+                    <div className="instructor-avatar">
+                      {courseData.instructor_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="instructor-details">
+                      <div className="instructor-name">
+                        {courseData.instructor_name}
+                        <span className="verified-badge">
+                          <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                          </svg>
+                        </span>
+                      </div>
+                      {courseData.instructor_about && (
+                        <div className="instructor-bio">{courseData.instructor_about}</div>
+                      )}
+                    </div>
                   </div>
                 </div>
+              )}
 
+              {/* Price & Purchase */}
+              <div className="purchase-footer">
+                <div className="price-section">
+                  <div className="price-label">Giá khóa học</div>
+                  <div className="price-value">
+                    <span className="price-sui">{formatSui(priceInSui)}</span>
+                    <span className="price-vnd">≈ {formatVnd(suiToVnd(priceInSui))}</span>
+                  </div>
+                </div>
                 <button
                   onClick={handlePurchase}
                   disabled={purchasing}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
+                  className="purchase-button"
                 >
-                  {purchasing ? 'Đang đăng ký...' : 'Đăng ký ngay'}
+                  {purchasing ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                      </svg>
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                      </svg>
+                      Đăng ký ngay
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

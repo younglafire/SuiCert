@@ -24,6 +24,10 @@ export interface CourseData {
   materials?: CourseMaterial[]; // Optional course-level materials
   test_questions: TestQuestion[];
   passing_score: number; // e.g., 70 for 70%
+  // Instructor info (stored in course data JSON)
+  instructor_name?: string;
+  instructor_about?: string;
+  instructor_contacts?: string;
 }
 
 export interface CourseInfo {
