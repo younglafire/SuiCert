@@ -29,11 +29,20 @@ export interface CourseData {
 export interface CourseInfo {
   id: string;
   instructor: string;
+  instructor_profile_id: string;
   title: string;
   description: string;
   price: string;
   thumbnail_blob_id: string;
   course_data_blob_id: string;
+}
+
+export interface TeacherProfile {
+  id: string;
+  owner: string;
+  avatar_blob_id: string;
+  about: string;
+  contacts: string;
 }
 
 export interface CourseTicket {
