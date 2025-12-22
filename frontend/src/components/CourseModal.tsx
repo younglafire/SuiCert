@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
-import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui, truncateAddress } from '../utils/helpers';
+import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui } from '../utils/helpers';
 import type { CourseInfo, CourseData } from '../types/course';
 import TeacherProfileView from './TeacherProfileView';
 
-const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
+const PACKAGE_ID = '0x3f8e153f9ef0e59e57df15ccb51251820b0f3ba6cf5fe8a0774eb5832d1d3b5c';
 const MODULE_NAME = 'academy';
 const WALRUS_AGGREGATOR_URL = 'https://aggregator.walrus-testnet.walrus.space';
 
