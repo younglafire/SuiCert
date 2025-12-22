@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import type { SuiObjectData } from '@mysten/sui/client';
 import CourseCard from './CourseCard';
+import type { CourseInfo } from '../types/course';
 
 // ===========================
 // Constants
@@ -10,25 +11,13 @@ const PACKAGE_ID = '0x122e018f7546a62957f3c7adc0afbe81830c6c1144f479d7f782292539
 const MODULE_NAME = 'academy';
 
 // ===========================
-// Types
-// ===========================
-interface CourseData {
-  id: string;
-  instructor: string;
-  title: string;
-  description: string;
-  price: string;
-  walrus_blob_id: string;
-}
-
-// ===========================
 // Component
 // ===========================
 export default function CourseList() {
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
 
-  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,7 +55,7 @@ export default function CourseList() {
         const courseObjects = await Promise.all(coursePromises);
 
         // Parse course data
-        const parsedCourses: CourseData[] = courseObjects
+        const parsedCourses: CourseInfo[] = courseObjects
           .filter((obj) => obj.data?.content?.dataType === 'moveObject')
           .map((obj) => {
             const data = obj.data as SuiObjectData;
@@ -78,7 +67,8 @@ export default function CourseList() {
               title: fields.title,
               description: fields.description,
               price: fields.price,
-              walrus_blob_id: fields.walrus_blob_id,
+              thumbnail_blob_id: fields.thumbnail_blob_id,
+              course_data_blob_id: fields.course_data_blob_id,
             };
           });
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import type { SuiObjectData } from '@mysten/sui/client';
 import CourseCard from './CourseCard';
+import type { CourseInfo } from '../types/course';
 
 // ===========================
 // Constants
@@ -9,16 +10,8 @@ import CourseCard from './CourseCard';
 const PACKAGE_ID = '0x122e018f7546a62957f3c7adc0afbe81830c6c1144f479d7f782292539359b64';
 const MODULE_NAME = 'academy';
 
-// ===========================
-// Types
-// ===========================
-interface CourseData {
-  id: string;
-  instructor: string;
-  title: string;
-  description: string;
-  price: string;
-  walrus_blob_id: string;
+interface TicketData {
+  course_id: string;
 }
 
 interface CertificateData {
@@ -32,7 +25,7 @@ export default function MyCourses() {
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
 
-  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +43,18 @@ export default function MyCourses() {
         setLoading(true);
         setError(null);
 
-        // Step 1: Get all certificates owned by the user
+        // Step 1: Get all tickets owned by the user
+        const ownedTickets = await suiClient.getOwnedObjects({
+          owner: currentAccount.address,
+          filter: {
+            StructType: `${PACKAGE_ID}::${MODULE_NAME}::CourseTicket`,
+          },
+          options: {
+            showContent: true,
+          },
+        });
+
+        // Step 2: Get all certificates owned by the user
         const ownedCertificates = await suiClient.getOwnedObjects({
           owner: currentAccount.address,
           filter: {
@@ -61,8 +65,16 @@ export default function MyCourses() {
           },
         });
 
-        // Extract course IDs from certificates
-        const courseIds: string[] = ownedCertificates.data
+        // Extract course IDs from both tickets and certificates
+        const ticketCourseIds: string[] = ownedTickets.data
+          .filter((obj) => obj.data?.content?.dataType === 'moveObject')
+          .map((obj) => {
+            const fields = (obj.data?.content as any)?.fields as TicketData;
+            return fields?.course_id;
+          })
+          .filter((id): id is string => !!id);
+
+        const certificateCourseIds: string[] = ownedCertificates.data
           .filter((obj) => obj.data?.content?.dataType === 'moveObject')
           .map((obj) => {
             const fields = (obj.data?.content as any)?.fields as CertificateData;
@@ -70,14 +82,17 @@ export default function MyCourses() {
           })
           .filter((id): id is string => !!id);
 
-        if (courseIds.length === 0) {
+        // Combine and deduplicate course IDs
+        const allCourseIds = [...new Set([...ticketCourseIds, ...certificateCourseIds])];
+
+        if (allCourseIds.length === 0) {
           setCourses([]);
           setLoading(false);
           return;
         }
 
-        // Step 2: Fetch course details for each certificate
-        const coursePromises = courseIds.map((id) =>
+        // Step 3: Fetch course details for each course
+        const coursePromises = allCourseIds.map((id) =>
           suiClient.getObject({
             id,
             options: {
@@ -90,7 +105,7 @@ export default function MyCourses() {
         const courseResults = await Promise.allSettled(coursePromises);
 
         // Parse course data, filtering out failed requests
-        const parsedCourses: CourseData[] = courseResults
+        const parsedCourses: CourseInfo[] = courseResults
           .filter((result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof suiClient.getObject>>> => 
             result.status === 'fulfilled' && result.value.data?.content?.dataType === 'moveObject'
           )
@@ -104,7 +119,8 @@ export default function MyCourses() {
               title: fields.title,
               description: fields.description,
               price: fields.price,
-              walrus_blob_id: fields.walrus_blob_id,
+              thumbnail_blob_id: fields.thumbnail_blob_id,
+              course_data_blob_id: fields.course_data_blob_id,
             };
           });
 
