@@ -4,7 +4,7 @@ import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@
 import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui, truncateAddress } from '../utils/helpers';
 import type { CourseInfo, CourseData } from '../types/course';
 
-const PACKAGE_ID = '0x122e018f7546a62957f3c7adc0afbe81830c6c1144f479d7f782292539359b64';
+const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
 const MODULE_NAME = 'academy';
 const WALRUS_AGGREGATOR_URL = 'https://aggregator.walrus-testnet.walrus.space';
 
