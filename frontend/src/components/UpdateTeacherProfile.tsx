@@ -125,7 +125,8 @@ export default function UpdateTeacherProfile({ onProfileUpdated, onCancel }: Upd
           },
           onError: (error) => {
             console.error('Lỗi cập nhật hồ sơ giáo viên:', error);
-            alert(`Cập nhật hồ sơ giáo viên thất bại: ${error.message}`);
+            const errorMsg = error.message || 'Đã xảy ra lỗi không xác định';
+            alert(`Cập nhật hồ sơ giáo viên thất bại: ${errorMsg}`);
             setUploadProgress('');
           },
         }

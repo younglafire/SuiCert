@@ -76,7 +76,8 @@ export default function CreateTeacherProfile({ onProfileCreated, onCancel }: Cre
           },
           onError: (error) => {
             console.error('Lỗi tạo hồ sơ giáo viên:', error);
-            alert(`Tạo hồ sơ giáo viên thất bại: ${error.message}`);
+            const errorMsg = error.message || 'Đã xảy ra lỗi không xác định';
+            alert(`Tạo hồ sơ giáo viên thất bại: ${errorMsg}`);
             setUploadProgress('');
           },
         }
