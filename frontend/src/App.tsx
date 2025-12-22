@@ -3,6 +3,7 @@ import { ConnectButton } from "@mysten/dapp-kit";
 import CreateCourseForm from "./components/CreateCourseForm";
 import CourseList from "./components/CourseList";
 import MyCourses from "./components/MyCourses";
+import UpdateTeacherProfile from "./components/UpdateTeacherProfile";
 
 function App() {
   const location = useLocation();
@@ -85,6 +86,20 @@ function App() {
             >
               ➕ Đăng khóa học
             </Link>
+            <Link
+              to="/profile"
+              style={{
+                padding: "1rem 0",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: isActive("/profile") ? "#2563eb" : "#6b7280",
+                borderBottom: isActive("/profile") ? "2px solid #2563eb" : "2px solid transparent",
+                textDecoration: "none",
+                transition: "all 0.2s"
+              }}
+            >
+              👤 Hồ sơ giáo viên
+            </Link>
           </nav>
         </div>
       </div>
@@ -94,6 +109,15 @@ function App() {
           <Route path="/" element={<CourseList />} />
           <Route path="/my-courses" element={<MyCourses />} />
           <Route path="/create" element={<CreateCourseForm />} />
+          <Route 
+            path="/profile" 
+            element={
+              <UpdateTeacherProfile 
+                onProfileUpdated={() => window.location.reload()} 
+                onCancel={() => window.history.back()}
+              />
+            } 
+          />
         </Routes>
       </main>
 
