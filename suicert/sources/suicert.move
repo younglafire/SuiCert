@@ -9,6 +9,8 @@ module suicert::academy {
 
     // === Errors ===
     const EInsufficientPayment: u64 = 0;
+    const ENoTicket: u64 = 1;
+    const EAlreadyHasCertificate: u64 = 2;
 
     // === Structs ===
 
@@ -20,7 +22,16 @@ module suicert::academy {
         title: String,
         description: String,
         price: u64,
-        walrus_blob_id: String, // Decentralized storage reference
+        thumbnail_blob_id: String, // Thumbnail image on Walrus
+        course_data_blob_id: String, // JSON with modules, materials, test questions on Walrus
+    }
+
+    /// Course Ticket - Proof of purchase, allows access to course content
+    /// Can be transferred until converted to certificate
+    public struct CourseTicket has key, store {
+        id: UID,
+        course_id: ID,
+        student_address: address,
     }
 
     /// Soulbound Certificate - Non-transferable proof of course completion
@@ -37,6 +48,9 @@ module suicert::academy {
         id: UID,
         course_id: ID,
         student_address: address,
+        student_name: String,
+        test_score: u64, // Percentage score (0-100)
+        completion_date: u64, // Timestamp
     }
 
     // === Events ===
@@ -53,6 +67,14 @@ module suicert::academy {
         student: address,
     }
 
+    /// Emitted when a student completes a course and earns certificate
+    public struct CertificateIssued has copy, drop {
+        course_id: ID,
+        student: address,
+        student_name: String,
+        test_score: u64,
+    }
+
     // === Public Functions ===
 
     /// Creates a new course and shares it for public access
@@ -61,13 +83,15 @@ module suicert::academy {
     /// * `title` - The course title
     /// * `description` - Detailed course description
     /// * `price` - Enrollment price in MIST (1 SUI = 1_000_000_000 MIST)
-    /// * `walrus_blob_id` - Reference to course content stored on Walrus
+    /// * `thumbnail_blob_id` - Reference to course thumbnail on Walrus
+    /// * `course_data_blob_id` - Reference to course data JSON on Walrus (modules, materials, tests)
     /// * `ctx` - Transaction context (provides sender address)
     public entry fun create_course(
         title: String,
         description: String,
         price: u64,
-        walrus_blob_id: String,
+        thumbnail_blob_id: String,
+        course_data_blob_id: String,
         ctx: &mut TxContext,
     ) {
         let course_id = object::new(ctx);
@@ -79,7 +103,8 @@ module suicert::academy {
             title,
             description,
             price,
-            walrus_blob_id,
+            thumbnail_blob_id,
+            course_data_blob_id,
         };
 
         // Emit course creation event
@@ -92,7 +117,7 @@ module suicert::academy {
         transfer::share_object(course);
     }
 
-    /// Enrolls a student in a course by processing payment and minting a certificate
+    /// Enrolls a student in a course by processing payment and issuing a ticket
     /// 
     /// # Arguments
     /// * `course` - Reference to the course to enroll in
@@ -115,10 +140,10 @@ module suicert::academy {
         // Transfer payment to the instructor
         transfer::public_transfer(payment_coin, course.instructor);
 
-        // Create the soulbound certificate
-        let certificate_id = object::new(ctx);
-        let certificate = CourseCertificate {
-            id: certificate_id,
+        // Create the course ticket (grants access to course)
+        let ticket_id = object::new(ctx);
+        let ticket = CourseTicket {
+            id: ticket_id,
             course_id: object::id(course),
             student_address: ctx.sender(),
         };
@@ -127,6 +152,48 @@ module suicert::academy {
         event::emit(CoursePurchased {
             course_id: object::id(course),
             student: ctx.sender(),
+        });
+
+        // Transfer ticket to student
+        transfer::public_transfer(ticket, ctx.sender());
+    }
+
+    /// Issue a certificate after student passes the final test
+    /// Consumes the course ticket and creates a soulbound certificate
+    /// 
+    /// # Arguments
+    /// * `ticket` - The course ticket (proof of purchase)
+    /// * `student_name` - The student's name for the certificate
+    /// * `test_score` - The test score percentage (0-100)
+    /// * `ctx` - Transaction context
+    public entry fun issue_certificate(
+        ticket: CourseTicket,
+        student_name: String,
+        test_score: u64,
+        ctx: &mut TxContext,
+    ) {
+        let CourseTicket { id: ticket_id, course_id, student_address: _ } = ticket;
+        
+        // Delete the ticket
+        object::delete(ticket_id);
+
+        // Create the soulbound certificate
+        let certificate_id = object::new(ctx);
+        let certificate = CourseCertificate {
+            id: certificate_id,
+            course_id,
+            student_address: ctx.sender(),
+            student_name,
+            test_score,
+            completion_date: tx_context::epoch(ctx),
+        };
+
+        // Emit certificate event
+        event::emit(CertificateIssued {
+            course_id,
+            student: ctx.sender(),
+            student_name,
+            test_score,
         });
 
         // Transfer certificate to student
@@ -147,10 +214,14 @@ module suicert::academy {
         course.instructor
     }
 
-    /// Returns the Walrus blob ID for course content
-    public fun get_walrus_blob_id(course: &Course): String {
-        course.walrus_blob_id
+    /// Returns the Walrus blob ID for course thumbnail
+    public fun get_thumbnail_blob_id(course: &Course): String {
+        course.thumbnail_blob_id
+    }
+
+    /// Returns the Walrus blob ID for course data
+    public fun get_course_data_blob_id(course: &Course): String {
+        course.course_data_blob_id
     }
 }
-
 
