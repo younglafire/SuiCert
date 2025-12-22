@@ -28,7 +28,13 @@ interface QuestionFormData {
   correct_answer: number;
 }
 
-export default function CreateCourseForm() {
+// Thêm interface Props
+interface CreateCourseFormProps {
+  onCreated?: () => void;
+}
+
+// Sửa function signature
+export default function CreateCourseForm({ onCreated }: CreateCourseFormProps) {
   const currentAccount = useCurrentAccount();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
@@ -273,8 +279,8 @@ export default function CreateCourseForm() {
         { transaction: tx },
         {
           onSuccess: (result) => {
-            console.log('Tạo khóa học thành công:', result);
-            alert('Khóa học đã được tạo thành công!');
+            console.log('Course created:', result);
+            alert('Tạo khóa học thành công!');
             
             // Reset form
             setTitle('');
@@ -286,6 +292,8 @@ export default function CreateCourseForm() {
             setTestQuestions([{ question: '', options: ['', '', '', ''], correct_answer: 0 }]);
             setPassingScore(70);
             setUploadProgress('');
+            // Gọi callback
+            if (onCreated) onCreated();
           },
           onError: (error) => {
             console.error('Lỗi tạo khóa học:', error);
