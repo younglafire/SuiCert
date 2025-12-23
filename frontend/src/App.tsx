@@ -1,17 +1,47 @@
+import { useState, useEffect } from "react";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
-import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
 import CreateCourseForm from "./components/CreateCourseForm";
 import CourseList from "./components/CourseList";
 import MyCourses from "./components/MyCourses";
 import MyCertificates from "./components/MyCertificates";
 import TeacherProfile from "./components/TeacherProfile";
+import CourseLearning from "./components/CourseLearning";
 import "./App.css";
 
 function App() {
   const account = useCurrentAccount();
   const location = useLocation();
+  const suiClient = useSuiClient();
+  const [balance, setBalance] = useState<string | null>(null);
 
   const isActive = (path: string) => location.pathname === path;
+  const isLearning = location.pathname.startsWith('/learn/');
+
+  // Fetch wallet balance
+  useEffect(() => {
+    async function fetchBalance() {
+      if (!account?.address) {
+        setBalance(null);
+        return;
+      }
+      try {
+        const balanceData = await suiClient.getBalance({
+          owner: account.address,
+        });
+        // Convert MIST to SUI (1 SUI = 1_000_000_000 MIST)
+        const suiBalance = Number(balanceData.totalBalance) / 1_000_000_000;
+        setBalance(suiBalance.toFixed(4));
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+        setBalance(null);
+      }
+    }
+    fetchBalance();
+    // Refresh balance every 10 seconds
+    const interval = setInterval(fetchBalance, 10000);
+    return () => clearInterval(interval);
+  }, [account?.address, suiClient]);
 
   if (account) {
     return (
@@ -19,6 +49,15 @@ function App() {
         <header className="app-header">
           <div className="app-brand">SuiCert Academy</div>
           <div className="app-actions">
+            {balance !== null && (
+              <span className="app-balance">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v12M6 12h12"/>
+                </svg>
+                {balance} SUI
+              </span>
+            )}
             <span className="app-env">Testnet • {account?.address.slice(0, 6)}...</span>
             <ConnectButton />
           </div>
@@ -37,17 +76,14 @@ function App() {
             </Link>
             <Link
               to="/my-courses"
-              className={isActive("/my-courses") ? "side-nav__item active" : "side-nav__item"}
+              className={isLearning ? "side-nav__item active" : (isActive("/my-courses") ? "side-nav__item active" : "side-nav__item")}
             >
               <span className="side-nav__icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                  <line x1="8" y1="7" x2="16" y2="7"/>
-                  <line x1="8" y1="11" x2="14" y2="11"/>
+                  <polygon points="5 3 19 12 5 21 5 3"/>
                 </svg>
               </span>
-              <span className="side-nav__label">Lộ trình</span>
+              <span className="side-nav__label">Học tập</span>
             </Link>
             <Link
               to="/create"
@@ -92,6 +128,7 @@ function App() {
             <Routes>
               <Route path="/" element={<CourseList />} />
               <Route path="/my-courses" element={<MyCourses />} />
+              <Route path="/learn/:courseId" element={<CourseLearning />} />
               <Route path="/create" element={<CreateCourseForm />} />
               <Route path="/teacher-profile" element={<TeacherProfile />} />
               <Route path="/profile" element={<MyCertificates />} />
@@ -120,89 +157,85 @@ function App() {
           </div>
         </div>
         <div className="bar-actions">
-          <div className="muted-pill">Testnet • Live</div>
+          <div className="status-dot"></div>
+          <span className="status-text">Testnet</span>
           <ConnectButton />
         </div>
       </header>
 
-      <main className="shell hero-grid">
-        <section className="hero">
-          <p className="eyebrow">Web3 Education Platform • Sui Blockchain</p>
-          <h1>
-            Học Blockchain & Web3 - Nhận chứng chỉ Soulbound NFT
-          </h1>
-          <p className="lede">
-            Nền tảng e-learning phi tập trung đầu tiên trên Sui Network.
-            Học từ các chuyên gia, hoàn thành khóa học và nhận chứng chỉ NFT không thể chuyển nhượng - 
-            minh chứng kỹ năng vĩnh viễn trên blockchain.
-          </p>
-          <div className="cta-row">
-            <ConnectButton />
-            <div className="hint">Kết nối ví Sui để bắt đầu học</div>
+      <main className="shell landing-main">
+        <section className="hero-section">
+          <div className="hero-content">
+            <div className="hero-badge">Web3 Education</div>
+            <h1>
+              Học <span>Blockchain</span><br/>
+              Nhận chứng chỉ <span>NFT</span>
+            </h1>
+            <p className="hero-desc">
+              Nền tảng e-learning phi tập trung trên Sui Network. 
+              Hoàn thành khóa học và nhận Soulbound NFT Certificate.
+            </p>
+            <div className="hero-cta">
+              <ConnectButton />
+              <p className="cta-hint">Kết nối ví để bắt đầu</p>
+            </div>
           </div>
-          <div className="pulse-row">
-            <div>
-              <span className="label">Nội dung</span>
-              <strong>Video & Tài liệu</strong>
-            </div>
-            <div>
-              <span className="label">Chứng chỉ</span>
-              <strong>Soulbound NFT</strong>
-            </div>
-            <div>
-              <span className="label">Thanh toán</span>
-              <strong>SUI Token</strong>
+          
+          <div className="hero-visual">
+            <div className="visual-card">
+              <div className="card-glow"></div>
+              <div className="card-content">
+                <div className="card-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                  </svg>
+                </div>
+                <h3>Certificate NFT</h3>
+                <p>Soulbound • On-chain</p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <p className="eyebrow">Quy trình học tập</p>
-              <h2>3 bước để thành thạo Web3</h2>
-            </div>
-            <div className="dot">●</div>
+        <section className="features-section">
+          <div className="feature-card">
+            <div className="feature-number">01</div>
+            <h3>Chọn khóa học</h3>
+            <p>Thanh toán bằng SUI Token</p>
           </div>
-          <div className="steps">
-            <div className="step">
-              <p className="step-title">1 · Chọn khóa học</p>
-              <p className="step-copy">Duyệt các khóa học từ giảng viên uy tín, thanh toán bằng SUI.</p>
-            </div>
-            <div className="step">
-              <p className="step-title">2 · Học & Thực hành</p>
-              <p className="step-copy">Xem video bài giảng, tải tài liệu và làm bài tập thực hành.</p>
-            </div>
-            <div className="step">
-              <p className="step-title">3 · Nhận chứng chỉ</p>
-              <p className="step-copy">Hoàn thành bài kiểm tra, nhận Soulbound NFT Certificate.</p>
-            </div>
+          <div className="feature-card">
+            <div className="feature-number">02</div>
+            <h3>Học & Thực hành</h3>
+            <p>Video + Tài liệu chất lượng</p>
           </div>
-          <div className="panels-grid">
-            <div className="data-card">
-              <p className="label">Lưu trữ</p>
-              <h3>Walrus Storage</h3>
-              <p className="muted">Nội dung được lưu trữ phi tập trung, bảo mật và không thể xóa.</p>
-            </div>
-            <div className="data-card">
-              <p className="label">Thanh toán</p>
-              <h3>SUI Token</h3>
-              <p className="muted">Giao dịch nhanh chóng, phí thấp, minh bạch trên blockchain.</p>
-            </div>
-            <div className="data-card">
-              <p className="label">Chứng chỉ</p>
-              <h3>Soulbound NFT</h3>
-              <p className="muted">Không thể giả mạo, không thể chuyển nhượng, gắn với ví của bạn.</p>
-            </div>
+          <div className="feature-card">
+            <div className="feature-number">03</div>
+            <h3>Nhận chứng chỉ</h3>
+            <p>NFT không thể chuyển nhượng</p>
+          </div>
+        </section>
+
+        <section className="tech-section">
+          <div className="tech-item">
+            <span className="tech-label">Storage</span>
+            <span className="tech-value">Walrus</span>
+          </div>
+          <div className="tech-divider"></div>
+          <div className="tech-item">
+            <span className="tech-label">Network</span>
+            <span className="tech-value">Sui</span>
+          </div>
+          <div className="tech-divider"></div>
+          <div className="tech-item">
+            <span className="tech-label">Certificate</span>
+            <span className="tech-value">Soulbound</span>
           </div>
         </section>
       </main>
 
       <footer className="shell footer">
-        <div className="footer-copy">
-          <p>SuiCert Academy — Học Web3, Nhận chứng chỉ On-chain</p>
-          <p className="muted">Powered by Sui Network • Walrus Storage • Soulbound NFT</p>
-        </div>
+        <p>SuiCert Academy — Web3 Learning Platform</p>
       </footer>
     </div>
   );

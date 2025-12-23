@@ -231,6 +231,9 @@ export default function CourseCard({ course }: CourseCardProps) {
               onClick={() => {
                 if (hasCertificate) {
                   navigate('/profile');
+                } else if (hasTicket) {
+                  // Đã mua -> chuyển đến trang học tập
+                  navigate(`/learn/${course.id}`);
                 } else {
                   setShowModal(true);
                 }
@@ -243,20 +246,25 @@ export default function CourseCard({ course }: CourseCardProps) {
                   : 'course-card__cta--primary'
               }`}
             >
-              {hasCertificate ? 'Xem chứng chỉ' : hasTicket ? 'Tiếp tục học' : 'Đăng ký ngay'}
+              {hasCertificate ? 'Xem chứng chỉ' : hasTicket ? 'Vào học' : 'Đăng ký ngay'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Course Modal */}
-      {showModal && (
+      {/* Course Modal - chỉ hiện khi chưa mua */}
+      {showModal && !hasTicket && (
         <CourseModal
           course={course}
           hasTicket={hasTicket}
           hasCertificate={hasCertificate}
           onClose={() => setShowModal(false)}
-          onPurchaseSuccess={() => setHasTicket(true)}
+          onPurchaseSuccess={() => {
+            setHasTicket(true);
+            setShowModal(false);
+            // Chuyển đến trang học tập sau khi mua thành công
+            navigate(`/learn/${course.id}`);
+          }}
           onCertificateSuccess={() => {
             setHasTicket(false);
             setHasCertificate(true);
