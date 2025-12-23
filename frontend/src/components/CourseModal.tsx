@@ -4,7 +4,7 @@ import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@
 import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui } from '../utils/helpers';
 import type { CourseInfo, CourseData } from '../types/course';
 
-const PACKAGE_ID = '0x3f8e153f9ef0e59e57df15ccb51251820b0f3ba6cf5fe8a0774eb5832d1d3b5c';
+const PACKAGE_ID = '0x21525a8d7469d45dbb9a4ae89c2a465816c71cb495127ae8b3a2d4dda2083cf3';
 const MODULE_NAME = 'academy';
 const WALRUS_AGGREGATOR_URL = 'https://aggregator.walrus-testnet.walrus.space';
 
@@ -48,6 +48,16 @@ export default function CourseModal({
   
   // Purchase count
   const [purchaseCount, setPurchaseCount] = useState<number>(0);
+
+  // Teacher profile
+  interface TeacherProfile {
+    id: string;
+    name: string;
+    avatar_blob_id: string;
+    about: string;
+    contacts: string;
+  }
+  const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
 
   // Load course data from Walrus
   useEffect(() => {
@@ -99,6 +109,44 @@ export default function CourseModal({
 
     loadPurchaseCount();
   }, [course.id, suiClient]);
+
+  // Load teacher profile from blockchain
+  useEffect(() => {
+    const loadTeacherProfile = async () => {
+      if (!course.instructor) return;
+      
+      try {
+        // Query TeacherProfile objects owned by the instructor
+        const objects = await suiClient.getOwnedObjects({
+          owner: course.instructor,
+          filter: {
+            StructType: `${PACKAGE_ID}::${MODULE_NAME}::TeacherProfile`,
+          },
+          options: {
+            showContent: true,
+          },
+        });
+
+        if (objects.data.length > 0) {
+          const profileObj = objects.data[0];
+          if (profileObj.data?.content?.dataType === 'moveObject') {
+            const fields = profileObj.data.content.fields as any;
+            setTeacherProfile({
+              id: profileObj.data.objectId,
+              name: fields.name || '',
+              avatar_blob_id: fields.avatar_blob_id || '',
+              about: fields.about || '',
+              contacts: fields.contacts || '',
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error loading teacher profile:', err);
+      }
+    };
+
+    loadTeacherProfile();
+  }, [course.instructor, suiClient]);
 
   // Load video for current module
   useEffect(() => {
@@ -680,35 +728,75 @@ export default function CourseModal({
                 </div>
               </div>
 
-              {/* Instructor Section */}
-              {courseData.instructor_name && (
-                <div className="purchase-section instructor-section">
-                  <h3 className="section-title">
-                    <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    Giảng viên
-                  </h3>
-                  <div className="instructor-card">
-                    <div className="instructor-avatar">
-                      {courseData.instructor_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="instructor-details">
-                      <div className="instructor-name">
-                        {courseData.instructor_name}
-                        <span className="verified-badge">
-                          <svg viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                          </svg>
-                        </span>
-                      </div>
-                      {courseData.instructor_about && (
-                        <div className="instructor-bio">{courseData.instructor_about}</div>
+              {/* Instructor Section - From Blockchain */}
+              <div className="purchase-section instructor-section">
+                <h3 className="section-title">
+                  <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  Giảng viên
+                </h3>
+                <div className="instructor-card-full">
+                  <div className="instructor-header">
+                    <div className="instructor-avatar-large">
+                      {teacherProfile?.avatar_blob_id ? (
+                        <img 
+                          src={`${WALRUS_AGGREGATOR_URL}/v1/blobs/${teacherProfile.avatar_blob_id}`} 
+                          alt="Avatar"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        (teacherProfile?.name || courseData.instructor_name || 'G').charAt(0).toUpperCase()
                       )}
                     </div>
+                    <div className="instructor-main-info">
+                      <div className="instructor-name-row">
+                        <span className="instructor-name-text">
+                          {teacherProfile?.name || courseData.instructor_name || 'Giảng viên'}
+                        </span>
+                        {teacherProfile && (
+                          <span className="verified-badge-large" title="Hồ sơ đã xác thực on-chain">
+                            <svg viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                            </svg>
+                            On-chain
+                          </span>
+                        )}
+                      </div>
+                      <div className="instructor-stats-row">
+                        <span className="stat-badge address">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                          </svg>
+                          {course.instructor.slice(0, 6)}...{course.instructor.slice(-4)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                  
+                  {(teacherProfile?.about || courseData.instructor_about) && (
+                    <div className="instructor-bio-section">
+                      <div className="bio-label">Giới thiệu</div>
+                      <p className="instructor-bio-text">
+                        {teacherProfile?.about || courseData.instructor_about}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {teacherProfile?.contacts && (
+                    <div className="instructor-contact">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                      </svg>
+                      <span>{teacherProfile.contacts}</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* Price & Purchase */}
               <div className="purchase-footer">

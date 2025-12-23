@@ -20,6 +20,7 @@ module suicert::academy {
     public struct TeacherProfile has key, store {
         id: UID,
         owner: address,
+        name: String, // Teacher's display name
         avatar_blob_id: String, // Profile picture on Walrus
         about: String, // About the teacher
         contacts: String, // Contact information (email, social media, etc.)
@@ -105,11 +106,13 @@ module suicert::academy {
     /// This should be done once before creating the first course
     /// 
     /// # Arguments
+    /// * `name` - Teacher's display name
     /// * `avatar_blob_id` - Reference to profile picture on Walrus
     /// * `about` - Information about the teacher
     /// * `contacts` - Contact information (email, social media, etc.)
     /// * `ctx` - Transaction context (provides sender address)
     public entry fun create_teacher_profile(
+        name: String,
         avatar_blob_id: String,
         about: String,
         contacts: String,
@@ -121,6 +124,7 @@ module suicert::academy {
         let profile = TeacherProfile {
             id: profile_id,
             owner: ctx.sender(),
+            name,
             avatar_blob_id,
             about,
             contacts,
@@ -141,6 +145,7 @@ module suicert::academy {
     /// 
     /// # Arguments
     /// * `profile` - Mutable reference to the profile
+    /// * `name` - Updated teacher's display name
     /// * `avatar_blob_id` - New profile picture on Walrus
     /// * `about` - Updated information about the teacher
     /// * `contacts` - Updated contact information
@@ -150,6 +155,7 @@ module suicert::academy {
     /// Aborts with `ENotProfileOwner` if caller is not the profile owner
     public entry fun update_teacher_profile(
         profile: &mut TeacherProfile,
+        name: String,
         avatar_blob_id: String,
         about: String,
         contacts: String,
@@ -159,6 +165,7 @@ module suicert::academy {
         assert!(profile.owner == ctx.sender(), ENotProfileOwner);
 
         // Update profile fields
+        profile.name = name;
         profile.avatar_blob_id = avatar_blob_id;
         profile.about = about;
         profile.contacts = contacts;

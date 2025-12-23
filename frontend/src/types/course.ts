@@ -44,6 +44,7 @@ export interface CourseInfo {
 export interface TeacherProfile {
   id: string;
   owner: string;
+  name: string;
   avatar_blob_id: string;
   about: string;
   contacts: string;

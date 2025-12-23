@@ -8,7 +8,7 @@ import type { CourseInfo } from '../types/course';
 // ===========================
 // Constants
 // ===========================
-const PACKAGE_ID = '0x3f8e153f9ef0e59e57df15ccb51251820b0f3ba6cf5fe8a0774eb5832d1d3b5c';
+const PACKAGE_ID = '0x21525a8d7469d45dbb9a4ae89c2a465816c71cb495127ae8b3a2d4dda2083cf3';
 const MODULE_NAME = 'academy';
 
 interface CourseCardProps {

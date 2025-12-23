@@ -4,6 +4,7 @@ import CreateCourseForm from "./components/CreateCourseForm";
 import CourseList from "./components/CourseList";
 import MyCourses from "./components/MyCourses";
 import MyCertificates from "./components/MyCertificates";
+import TeacherProfile from "./components/TeacherProfile";
 import "./App.css";
 
 function App() {
@@ -62,6 +63,18 @@ function App() {
               <span className="side-nav__label">Đăng khóa học</span>
             </Link>
             <Link
+              to="/teacher-profile"
+              className={isActive("/teacher-profile") ? "side-nav__item active" : "side-nav__item"}
+            >
+              <span className="side-nav__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              <span className="side-nav__label">Hồ sơ giảng viên</span>
+            </Link>
+            <Link
               to="/profile"
               className={isActive("/profile") ? "side-nav__item active" : "side-nav__item"}
             >
@@ -80,6 +93,7 @@ function App() {
               <Route path="/" element={<CourseList />} />
               <Route path="/my-courses" element={<MyCourses />} />
               <Route path="/create" element={<CreateCourseForm />} />
+              <Route path="/teacher-profile" element={<TeacherProfile />} />
               <Route path="/profile" element={<MyCertificates />} />
             </Routes>
 
