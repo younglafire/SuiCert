@@ -627,6 +627,7 @@
 .app-shell {
   display: flex;
   min-height: calc(100vh - 72px);
+  padding-left: 90px;
 }
 
 .side-nav {
@@ -638,9 +639,11 @@
   flex-direction: column;
   gap: 14px;
   align-items: stretch;
-  position: sticky;
+  position: fixed;
   top: 72px;
+  left: 0;
   height: calc(100vh - 72px);
+  z-index: 120;
 }
 
 .side-nav__item {
@@ -660,7 +663,7 @@
 .side-nav__item:hover {
   background: #f1f5f9;
   color: #0f172a;
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .side-nav__item.active {
@@ -4816,7 +4819,7 @@
   border-bottom: 1px solid rgba(99, 102, 241, 0.1);
   box-shadow: 0 2px 20px rgba(99, 102, 241, 0.08);
   position: sticky;
-  top: 72px;
+  top: 85px;
   z-index: 100;
 }
 
