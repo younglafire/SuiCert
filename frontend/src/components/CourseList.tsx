@@ -7,7 +7,7 @@ import type { CourseInfo } from '../types/course';
 // ===========================
 // Constants
 // ===========================
-const PACKAGE_ID = '0x3f8e153f9ef0e59e57df15ccb51251820b0f3ba6cf5fe8a0774eb5832d1d3b5c';
+const PACKAGE_ID = '0x21525a8d7469d45dbb9a4ae89c2a465816c71cb495127ae8b3a2d4dda2083cf3';
 const MODULE_NAME = 'academy';
 
 // ===========================
@@ -137,16 +137,26 @@ export default function CourseList() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Khóa học có sẵn</h1>
-        <p className="text-gray-600">
-          Khám phá và đăng ký các khóa học để nhận chứng chỉ blockchain
-        </p>
+    <div className="course-page">
+      <div className="course-hero">
+        <div className="course-hero__copy">
+          <p className="eyebrow">Soulbound NFT • Sui Network</p>
+          <h1 className="course-hero__title">Học & Nhận chứng chỉ On-chain 🎓</h1>
+          <p className="course-hero__subtitle">
+            Hoàn thành khóa học, vượt qua bài kiểm tra và nhận chứng chỉ Soulbound NFT — xác thực vĩnh viễn trên blockchain, không thể giả mạo.
+          </p>
+          <div className="course-hero__cta">Khám phá ngay</div>
+        </div>
+        <div className="course-hero__badge">✓ Verified</div>
+      </div>
+
+      <div className="course-section-head">
+        <h2>Khóa học nổi bật</h2>
+        <span className="pill">Soulbound</span>
       </div>
 
       {courses.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+        <div className="course-empty">
           <svg
             className="mx-auto h-16 w-16 text-gray-400"
             fill="none"
@@ -164,7 +174,7 @@ export default function CourseList() {
           <p className="mt-2 text-gray-600">Các khóa học sẽ xuất hiện tại đây khi được tạo</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="course-grid">
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}

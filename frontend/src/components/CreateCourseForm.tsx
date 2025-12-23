@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { uploadToWalrus, uploadJsonToWalrus, suiToMist, suiToVnd, formatVnd } from '../utils/helpers';
 import type { CourseData, CourseModule, CourseMaterial, TestQuestion } from '../types/course';
-import CreateTeacherProfile from './CreateTeacherProfile';
 
 // Constants
-const PACKAGE_ID = '0x3f8e153f9ef0e59e57df15ccb51251820b0f3ba6cf5fe8a0774eb5832d1d3b5c';
+const PACKAGE_ID = '0x21525a8d7469d45dbb9a4ae89c2a465816c71cb495127ae8b3a2d4dda2083cf3';
 const MODULE_NAME = 'academy';
 
 interface ModuleFormData {
@@ -33,11 +33,20 @@ export default function CreateCourseForm() {
   const currentAccount = useCurrentAccount();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
+  const navigate = useNavigate();
+
+  // Step navigation
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
 
   // Teacher profile state
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [teacherProfileId, setTeacherProfileId] = useState<string | null>(null);
-  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [teacherProfileLoading, setTeacherProfileLoading] = useState(true);
+
+  // Instructor info - now loaded from profile
+  const [instructorName, setInstructorName] = useState('');
+  const [instructorAbout, setInstructorAbout] = useState('');
+  const [instructorContacts, setInstructorContacts] = useState('');
 
   // Basic course info
   const [title, setTitle] = useState('');
@@ -62,36 +71,104 @@ export default function CreateCourseForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
-  // Check if teacher has a profile
+  // Step navigation functions
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      // Validate current step before proceeding
+      if (currentStep === 1) {
+        if (!title.trim()) {
+          alert('Vui lòng nhập tiêu đề khóa học');
+          return;
+        }
+        if (!description.trim()) {
+          alert('Vui lòng nhập mô tả khóa học');
+          return;
+        }
+        if (!price || parseFloat(price) < 0) {
+          alert('Vui lòng nhập giá hợp lệ');
+          return;
+        }
+        if (!thumbnailFile) {
+          alert('Vui lòng chọn ảnh đại diện');
+          return;
+        }
+        if (!instructorName.trim()) {
+          alert('Vui lòng nhập tên giảng viên');
+          return;
+        }
+      }
+      if (currentStep === 2) {
+        if (modules.length === 0) {
+          alert('Vui lòng thêm ít nhất một module');
+          return;
+        }
+        for (let i = 0; i < modules.length; i++) {
+          if (!modules[i].title.trim()) {
+            alert(`Vui lòng nhập tiêu đề cho module ${i + 1}`);
+            return;
+          }
+          if (!modules[i].videoFile) {
+            alert(`Vui lòng chọn video cho module ${i + 1}`);
+            return;
+          }
+        }
+      }
+      setCurrentStep(currentStep + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToStep = (step: number) => {
+    if (step >= 1 && step <= totalSteps && step <= currentStep) {
+      setCurrentStep(step);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Lấy TeacherProfile từ blockchain và load thông tin giảng viên
   useEffect(() => {
-    async function checkProfile() {
+    async function loadTeacherProfile() {
       if (!currentAccount?.address) {
-        setHasProfile(null);
+        setTeacherProfileLoading(false);
         return;
       }
 
       try {
+        setTeacherProfileLoading(true);
         // Query for TeacherProfile objects owned by the current account
         const objects = await suiClient.getOwnedObjects({
           owner: currentAccount.address,
           filter: {
             StructType: `${PACKAGE_ID}::${MODULE_NAME}::TeacherProfile`,
           },
+          options: {
+            showContent: true,
+          },
         });
 
-        if (objects.data.length > 0) {
-          setHasProfile(true);
-          setTeacherProfileId(objects.data[0].data?.objectId || null);
-        } else {
-          setHasProfile(false);
+        if (objects.data.length > 0 && objects.data[0].data?.content) {
+          const content = objects.data[0].data.content as any;
+          const fields = content.fields;
+          setTeacherProfileId(objects.data[0].data.objectId);
+          setInstructorName(fields.name || '');
+          setInstructorAbout(fields.about || '');
+          setInstructorContacts(fields.contacts || '');
         }
       } catch (error) {
-        console.error('Error checking for teacher profile:', error);
-        setHasProfile(false);
+        console.error('Error getting teacher profile:', error);
+      } finally {
+        setTeacherProfileLoading(false);
       }
     }
 
-    checkProfile();
+    loadTeacherProfile();
   }, [currentAccount?.address, suiClient]);
 
   // Add module
@@ -196,6 +273,11 @@ export default function CreateCourseForm() {
       alert('Vui lòng chọn ảnh đại diện');
       return;
     }
+    // Validate instructor info (chỉ cần tên)
+    if (!instructorName.trim()) {
+      alert('Vui lòng nhập tên giảng viên');
+      return;
+    }
     if (modules.length === 0) {
       alert('Vui lòng thêm ít nhất một module');
       return;
@@ -289,6 +371,9 @@ export default function CreateCourseForm() {
         materials: uploadedCourseMaterials.length > 0 ? uploadedCourseMaterials : undefined,
         test_questions: preparedQuestions,
         passing_score: passingScore,
+        instructor_name: instructorName.trim(),
+        instructor_about: instructorAbout.trim(),
+        instructor_contacts: instructorContacts.trim(),
       };
       const courseDataBlobId = await uploadJsonToWalrus(courseData);
 
@@ -296,10 +381,12 @@ export default function CreateCourseForm() {
       setUploadProgress('Đang tạo khóa học trên blockchain...');
       const priceInMist = suiToMist(parseFloat(price));
 
+      // Profile ID đã được kiểm tra ở đầu component
       if (!teacherProfileId) {
-        throw new Error('Không tìm thấy hồ sơ giáo viên');
+        throw new Error('Không tìm thấy hồ sơ giáo viên trên blockchain');
       }
 
+      setUploadProgress('Đang tạo khóa học...');
       const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::create_course`,
@@ -329,7 +416,12 @@ export default function CreateCourseForm() {
             setModules([{ title: '', description: '', videoFile: null, materials: [] }]);
             setTestQuestions([{ question: '', options: ['', '', '', ''], correct_answer: 0 }]);
             setPassingScore(70);
+            setInstructorAbout('');
+            setInstructorContacts('');
             setUploadProgress('');
+
+            // Điều hướng về trang chủ để xem khóa học mới
+            navigate('/');
           },
           onError: (error) => {
             console.error('Lỗi tạo khóa học:', error);
@@ -371,436 +463,546 @@ export default function CreateCourseForm() {
     );
   }
 
-  // Show loading while checking for profile
-  if (hasProfile === null) {
+  // Đang load profile
+  if (teacherProfileLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang kiểm tra hồ sơ giáo viên...</p>
+      <div className="form-page">
+        <div className="form-container">
+          <div className="profile-loading">
+            <div className="spinner"></div>
+            <p>Đang kiểm tra hồ sơ giảng viên...</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Show profile creation form if teacher doesn't have a profile
-  if (hasProfile === false || showProfileForm) {
+  // Chưa có profile - yêu cầu tạo trước
+  if (!teacherProfileId) {
     return (
-      <CreateTeacherProfile
-        onProfileCreated={() => {
-          setHasProfile(null); // Trigger re-check
-          setShowProfileForm(false);
-        }}
-        onCancel={() => setShowProfileForm(false)}
-      />
+      <div className="form-page">
+        <div className="form-container">
+          <div className="profile-required">
+            <div className="profile-required-icon">👨‍🏫</div>
+            <h3>Bạn cần tạo hồ sơ giảng viên trước</h3>
+            <p>Để đăng khóa học, bạn cần có hồ sơ giảng viên được xác thực trên blockchain.</p>
+            <Link to="/teacher-profile" className="btn btn-primary btn-lg">
+              Tạo hồ sơ giảng viên
+            </Link>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Tạo khóa học mới</h2>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Thông tin cơ bản</h3>
-          
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              Tiêu đề khóa học *
-            </label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="VD: Lập trình Sui Move cho người mới bắt đầu"
-              disabled={isUploading}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-              Mô tả khóa học *
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
-              placeholder="Mô tả chi tiết về khóa học..."
-              disabled={isUploading}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-              Giá khóa học (SUI) *
-            </label>
-            <input
-              type="number"
-              id="price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              step="0.001"
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="VD: 1.5"
-              disabled={isUploading}
-              required
-            />
-            {price && !isNaN(parseFloat(price)) && (
-              <p className="mt-1 text-xs text-gray-500">
-                ≈ {formatVnd(suiToVnd(parseFloat(price)))}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700 mb-2">
-              Ảnh đại diện khóa học *
-            </label>
-            <input
-              type="file"
-              id="thumbnail"
-              onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
-              accept="image/*"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              disabled={isUploading}
-              required
-            />
-            {thumbnailFile && (
-              <p className="mt-2 text-sm text-gray-600">
-                Đã chọn: {thumbnailFile.name}
-              </p>
-            )}
-          </div>
+    <div className="form-page">
+      <div className="form-container">
+        <div className="form-header">
+          <h2>🎓 Tạo khóa học mới</h2>
+          <p>Tạo khóa học và nhận thanh toán bằng SUI token. Chứng chỉ Soulbound NFT sẽ được cấp cho học viên hoàn thành.</p>
         </div>
 
-        {/* Course Materials (Optional) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Tài liệu khóa học (Tùy chọn)</h3>
-            <button
-              type="button"
-              onClick={addCourseMaterial}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
-              disabled={isUploading}
-            >
-              + Thêm tài liệu
-            </button>
-          </div>
-
-          {courseMaterials.map((material, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-medium text-gray-700">Tài liệu {index + 1}</span>
-                <button
-                  type="button"
-                  onClick={() => removeCourseMaterial(index)}
-                  className="text-red-600 hover:text-red-800"
-                  disabled={isUploading}
-                >
-                  Xóa
-                </button>
-              </div>
-              
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={material.name}
-                  onChange={(e) => updateCourseMaterial(index, 'name', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="Tên tài liệu"
-                  disabled={isUploading}
-                />
-                
-                <select
-                  value={material.type}
-                  onChange={(e) => updateCourseMaterial(index, 'type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  disabled={isUploading}
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="word">Word</option>
-                  <option value="other">Khác</option>
-                </select>
-                
-                <input
-                  type="file"
-                  onChange={(e) => updateCourseMaterial(index, 'file', e.target.files?.[0] || null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  disabled={isUploading}
-                />
-              </div>
+        {/* Step Progress */}
+        <div className="step-progress">
+          <div className={`step-item ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`} onClick={() => goToStep(1)}>
+            <div className="step-number">{currentStep > 1 ? '✓' : '1'}</div>
+            <div className="step-info">
+              <span className="step-title">Thông tin cơ bản</span>
+              <span className="step-desc">Tiêu đề, giá, giảng viên</span>
             </div>
-          ))}
+          </div>
+          <div className="step-connector"></div>
+          <div className={`step-item ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`} onClick={() => goToStep(2)}>
+            <div className="step-number">{currentStep > 2 ? '✓' : '2'}</div>
+            <div className="step-info">
+              <span className="step-title">Nội dung khóa học</span>
+              <span className="step-desc">Video & tài liệu</span>
+            </div>
+          </div>
+          <div className="step-connector"></div>
+          <div className={`step-item ${currentStep >= 3 ? 'active' : ''}`} onClick={() => goToStep(3)}>
+            <div className="step-number">3</div>
+            <div className="step-info">
+              <span className="step-title">Bài kiểm tra</span>
+              <span className="step-desc">Câu hỏi & đáp án</span>
+            </div>
+          </div>
         </div>
 
-        {/* Modules */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Modules khóa học *</h3>
-            <button
-              type="button"
-              onClick={addModule}
-              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              disabled={isUploading}
-            >
-              + Thêm module
-            </button>
-          </div>
+        <div className="form-body">
+          <form onSubmit={handleSubmit}>
+            
+            {/* Step 1: Basic Information */}
+            {currentStep === 1 && (
+              <div className="step-content">
+                <div className="form-section">
+                  <div className="form-section-title">
+                    <h3>📝 Thông tin cơ bản</h3>
+                    <span className="section-badge">Bước 1/3</span>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label className="form-label">
+                      Tiêu đề khóa học <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="form-input"
+                      placeholder="VD: Lập trình Sui Move cho người mới bắt đầu"
+                      disabled={isUploading}
+                    />
+                  </div>
 
-          {modules.map((module, moduleIndex) => (
-            <div key={moduleIndex} className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-gray-800">Module {moduleIndex + 1}</span>
-                {modules.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeModule(moduleIndex)}
-                    className="text-red-600 hover:text-red-800"
-                    disabled={isUploading}
-                  >
-                    Xóa module
-                  </button>
-                )}
-              </div>
+                  <div className="form-group">
+                    <label className="form-label">
+                      Mô tả khóa học <span className="required">*</span>
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={4}
+                      className="form-textarea"
+                      placeholder="Mô tả chi tiết về khóa học, nội dung sẽ học, đối tượng phù hợp..."
+                      disabled={isUploading}
+                    />
+                  </div>
 
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={module.title}
-                  onChange={(e) => updateModule(moduleIndex, 'title', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="Tiêu đề module"
-                  disabled={isUploading}
-                  required
-                />
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">
+                        Giá khóa học (SUI) <span className="required">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        step="0.001"
+                        min="0"
+                        className="form-input"
+                        placeholder="VD: 1.5"
+                        disabled={isUploading}
+                      />
+                      {price && !isNaN(parseFloat(price)) && (
+                        <div className="price-hint">
+                          ≈ {formatVnd(suiToVnd(parseFloat(price)))}
+                        </div>
+                      )}
+                    </div>
 
-                <textarea
-                  value={module.description}
-                  onChange={(e) => updateModule(moduleIndex, 'description', e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
-                  placeholder="Mô tả module"
-                  disabled={isUploading}
-                />
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Video module *
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => updateModule(moduleIndex, 'videoFile', e.target.files?.[0] || null)}
-                    accept="video/*"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    disabled={isUploading}
-                    required
-                  />
-                  {module.videoFile && (
-                    <p className="mt-1 text-xs text-gray-600">
-                      {module.videoFile.name} ({(module.videoFile.size / 1024 / 1024).toFixed(2)} MB)
-                    </p>
-                  )}
+                    <div className="form-group">
+                      <label className="form-label">
+                        Ảnh đại diện <span className="required">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+                        accept="image/*"
+                        className="form-file"
+                        disabled={isUploading}
+                      />
+                      {thumbnailFile && (
+                        <div className="file-selected">
+                          <p>✓ {thumbnailFile.name}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Module Materials */}
-                <div className="ml-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Tài liệu module (Tùy chọn)</span>
+                {/* Instructor Information */}
+                <div className="form-section">
+                  <div className="form-section-title">
+                    <h3>👨‍🏫 Thông tin giảng viên</h3>
+                    <span className="section-badge section-badge-success">Đã liên kết</span>
+                  </div>
+                  <p className="form-section-desc">
+                    Thông tin được lấy từ <Link to="/teacher-profile" className="link-primary">hồ sơ của bạn</Link> và sẽ hiển thị cho học viên.
+                  </p>
+                  <div className="profile-preview">
+                    <div className="preview-label">📋 Thông tin từ hồ sơ:</div>
+                    <div className="preview-content">
+                      <div className="preview-item">
+                        <span className="preview-title">Tên giảng viên:</span>
+                        <span className="preview-value">{instructorName}</span>
+                      </div>
+                      {instructorAbout && (
+                        <div className="preview-item">
+                          <span className="preview-title">Giới thiệu:</span>
+                          <span className="preview-value">{instructorAbout}</span>
+                        </div>
+                      )}
+                      {instructorContacts && (
+                        <div className="preview-item">
+                          <span className="preview-title">Liên hệ:</span>
+                          <span className="preview-value">{instructorContacts}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="step-navigation">
+                  <div></div>
+                  <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
+                    Tiếp theo: Nội dung khóa học →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Course Content */}
+            {currentStep === 2 && (
+              <div className="step-content">
+                {/* Modules */}
+                <div className="form-section">
+                  <div className="form-section-title">
+                    <h3>🎬 Modules khóa học</h3>
+                    <span className="section-badge">Bước 2/3</span>
                     <button
                       type="button"
-                      onClick={() => addModuleMaterial(moduleIndex)}
-                      className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                      onClick={addModule}
+                      className="btn btn-primary btn-sm"
+                      style={{ marginLeft: 'auto' }}
                       disabled={isUploading}
                     >
-                      + Tài liệu
+                      + Thêm module
                     </button>
                   </div>
 
-                  {module.materials.map((material, materialIndex) => (
-                    <div key={materialIndex} className="border border-gray-200 rounded p-2 bg-white">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-gray-600">Tài liệu {materialIndex + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeModuleMaterial(moduleIndex, materialIndex)}
-                          className="text-xs text-red-600 hover:text-red-800"
-                          disabled={isUploading}
-                        >
-                          Xóa
-                        </button>
+                  {modules.map((module, moduleIndex) => (
+                    <div key={moduleIndex} className="form-card">
+                      <div className="form-card-header">
+                        <div className="form-card-title">
+                          <span className="num">{moduleIndex + 1}</span>
+                          Module
+                        </div>
+                        {modules.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeModule(moduleIndex)}
+                            className="form-card-delete"
+                            disabled={isUploading}
+                          >
+                            Xóa
+                          </button>
+                        )}
                       </div>
-                      
-                      <div className="space-y-2">
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          Tiêu đề module <span className="required">*</span>
+                        </label>
                         <input
                           type="text"
-                          value={material.name}
-                          onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'name', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
-                          placeholder="Tên tài liệu"
+                          value={module.title}
+                          onChange={(e) => updateModule(moduleIndex, 'title', e.target.value)}
+                          className="form-input"
+                          placeholder="VD: Giới thiệu về Sui Move"
                           disabled={isUploading}
                         />
-                        
-                        <select
-                          value={material.type}
-                          onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'type', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Mô tả module</label>
+                        <textarea
+                          value={module.description}
+                          onChange={(e) => updateModule(moduleIndex, 'description', e.target.value)}
+                          rows={2}
+                          className="form-textarea"
+                          placeholder="Mô tả nội dung module"
                           disabled={isUploading}
-                        >
-                          <option value="pdf">PDF</option>
-                          <option value="word">Word</option>
-                          <option value="other">Khác</option>
-                        </select>
-                        
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          Video bài giảng <span className="required">*</span>
+                        </label>
                         <input
                           type="file"
-                          onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'file', e.target.files?.[0] || null)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                          onChange={(e) => updateModule(moduleIndex, 'videoFile', e.target.files?.[0] || null)}
+                          accept="video/*"
+                          className="form-file"
                           disabled={isUploading}
                         />
+                        {module.videoFile && (
+                          <div className="file-selected">
+                            <p>✓ {module.videoFile.name}</p>
+                            <span className="size">({(module.videoFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Module Materials */}
+                      <div className="form-nested">
+                        <div className="form-nested-header">
+                          <span className="form-nested-title">📎 Tài liệu đính kèm</span>
+                          <button
+                            type="button"
+                            onClick={() => addModuleMaterial(moduleIndex)}
+                            className="btn btn-success btn-sm"
+                            disabled={isUploading}
+                          >
+                            + Thêm
+                          </button>
+                        </div>
+
+                        {module.materials.length === 0 ? (
+                          <p className="form-nested-empty">Chưa có tài liệu. Nhấn "+ Thêm" để thêm tài liệu cho module này.</p>
+                        ) : (
+                          module.materials.map((material, materialIndex) => (
+                            <div key={materialIndex} className="form-nested-card">
+                              <div className="form-nested-row">
+                                <input
+                                  type="text"
+                                  value={material.name}
+                                  onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'name', e.target.value)}
+                                  className="form-input"
+                                  placeholder="Tên tài liệu"
+                                  disabled={isUploading}
+                                />
+                                <select
+                                  value={material.type}
+                                  onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'type', e.target.value)}
+                                  className="form-select"
+                                  disabled={isUploading}
+                                >
+                                  <option value="pdf">PDF</option>
+                                  <option value="word">Word</option>
+                                  <option value="other">Khác</option>
+                                </select>
+                                <input
+                                  type="file"
+                                  onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'file', e.target.files?.[0] || null)}
+                                  className="form-file-small"
+                                  disabled={isUploading}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeModuleMaterial(moduleIndex, materialIndex)}
+                                  className="btn btn-danger btn-sm"
+                                  disabled={isUploading}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Test Questions */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Bài kiểm tra cuối khóa *</h3>
-            <button
-              type="button"
-              onClick={addTestQuestion}
-              className="px-3 py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              disabled={isUploading}
-            >
-              + Thêm câu hỏi
-            </button>
-          </div>
+                {/* Course Materials (Optional) */}
+                <div className="form-section">
+                  <div className="form-section-title">
+                    <h3>📚 Tài liệu chung</h3>
+                    <span className="section-badge section-badge-optional">Tùy chọn</span>
+                    <button
+                      type="button"
+                      onClick={addCourseMaterial}
+                      className="btn btn-success btn-sm"
+                      style={{ marginLeft: 'auto' }}
+                      disabled={isUploading}
+                    >
+                      + Thêm tài liệu
+                    </button>
+                  </div>
+                  <p className="form-section-desc">Tài liệu dùng chung cho toàn khóa học (slide, ebook...)</p>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Điểm đạt (%)
-            </label>
-            <input
-              type="number"
-              value={passingScore}
-              onChange={(e) => setPassingScore(parseInt(e.target.value))}
-              min="0"
-              max="100"
-              className="w-32 px-3 py-2 border border-gray-300 rounded-lg"
-              disabled={isUploading}
-            />
-            <span className="ml-2 text-sm text-gray-600">Mặc định: 70%</span>
-          </div>
-
-          {testQuestions.map((question, questionIndex) => (
-            <div key={questionIndex} className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-gray-800">Câu hỏi {questionIndex + 1}</span>
-                {testQuestions.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeTestQuestion(questionIndex)}
-                    className="text-red-600 hover:text-red-800"
-                    disabled={isUploading}
-                  >
-                    Xóa câu hỏi
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <textarea
-                  value={question.question}
-                  onChange={(e) => updateTestQuestion(questionIndex, 'question', e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
-                  placeholder="Nhập câu hỏi"
-                  disabled={isUploading}
-                  required
-                />
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Đáp án:</label>
-                  {question.options.map((option, optionIndex) => (
-                    <div key={optionIndex} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name={`question-${questionIndex}`}
-                        checked={question.correct_answer === optionIndex}
-                        onChange={() => updateTestQuestion(questionIndex, 'correct_answer', optionIndex)}
-                        className="w-4 h-4"
-                        disabled={isUploading}
-                      />
-                      <input
-                        type="text"
-                        value={option}
-                        onChange={(e) => updateTestQuestionOption(questionIndex, optionIndex, e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                        placeholder={`Đáp án ${optionIndex + 1}`}
-                        disabled={isUploading}
-                        required
-                      />
+                  {courseMaterials.length === 0 ? (
+                    <div className="form-empty">
+                      <p>📄 Chưa có tài liệu chung nào.</p>
                     </div>
-                  ))}
-                  <p className="text-xs text-gray-500 mt-1">
-                    * Chọn radio button bên trái để đánh dấu đáp án đúng
-                  </p>
+                  ) : (
+                    <div className="materials-grid">
+                      {courseMaterials.map((material, index) => (
+                        <div key={index} className="material-card">
+                          <div className="material-header">
+                            <span className="material-num">{index + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeCourseMaterial(index)}
+                              className="material-delete"
+                              disabled={isUploading}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            value={material.name}
+                            onChange={(e) => updateCourseMaterial(index, 'name', e.target.value)}
+                            className="form-input"
+                            placeholder="Tên tài liệu"
+                            disabled={isUploading}
+                          />
+                          <select
+                            value={material.type}
+                            onChange={(e) => updateCourseMaterial(index, 'type', e.target.value)}
+                            className="form-select"
+                            disabled={isUploading}
+                          >
+                            <option value="pdf">PDF</option>
+                            <option value="word">Word</option>
+                            <option value="other">Khác</option>
+                          </select>
+                          <input
+                            type="file"
+                            onChange={(e) => updateCourseMaterial(index, 'file', e.target.files?.[0] || null)}
+                            className="form-file"
+                            disabled={isUploading}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="step-navigation">
+                  <button type="button" onClick={prevStep} className="btn btn-secondary btn-lg">
+                    ← Quay lại
+                  </button>
+                  <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
+                    Tiếp theo: Bài kiểm tra →
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            )}
+
+            {/* Step 3: Test Questions */}
+            {currentStep === 3 && (
+              <div className="step-content">
+                <div className="form-section">
+                  <div className="form-section-title">
+                    <h3>📝 Bài kiểm tra cuối khóa</h3>
+                    <span className="section-badge">Bước 3/3</span>
+                    <button
+                      type="button"
+                      onClick={addTestQuestion}
+                      className="btn btn-primary btn-sm"
+                      style={{ marginLeft: 'auto' }}
+                      disabled={isUploading}
+                    >
+                      + Thêm câu hỏi
+                    </button>
+                  </div>
+
+                  <div className="passing-score-card">
+                    <div className="passing-score-info">
+                      <span className="passing-score-label">🎯 Điểm đạt yêu cầu</span>
+                      <span className="passing-score-desc">Học viên cần đạt điểm này để nhận chứng chỉ</span>
+                    </div>
+                    <div className="passing-score-input">
+                      <input
+                        type="number"
+                        value={passingScore}
+                        onChange={(e) => setPassingScore(parseInt(e.target.value) || 0)}
+                        min="0"
+                        max="100"
+                        className="form-input"
+                        disabled={isUploading}
+                      />
+                      <span className="passing-score-unit">%</span>
+                    </div>
+                  </div>
+
+                  <div className="questions-summary">
+                    <span>📋 Tổng số câu hỏi: <strong>{testQuestions.length}</strong></span>
+                  </div>
+
+                  {testQuestions.map((question, questionIndex) => (
+                    <div key={questionIndex} className="form-card question-card">
+                      <div className="form-card-header">
+                        <div className="form-card-title">
+                          <span className="num">{questionIndex + 1}</span>
+                          Câu hỏi
+                        </div>
+                        {testQuestions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeTestQuestion(questionIndex)}
+                            className="form-card-delete"
+                            disabled={isUploading}
+                          >
+                            Xóa
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          Nội dung câu hỏi <span className="required">*</span>
+                        </label>
+                        <textarea
+                          value={question.question}
+                          onChange={(e) => updateTestQuestion(questionIndex, 'question', e.target.value)}
+                          rows={2}
+                          className="form-textarea"
+                          placeholder="Nhập nội dung câu hỏi..."
+                          disabled={isUploading}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Các đáp án (chọn đáp án đúng):</label>
+                        <div className="options-list">
+                          {question.options.map((option, optionIndex) => (
+                            <div key={optionIndex} className={`option-row ${question.correct_answer === optionIndex ? 'correct' : ''}`}>
+                              <input
+                                type="radio"
+                                name={`question-${questionIndex}`}
+                                checked={question.correct_answer === optionIndex}
+                                onChange={() => updateTestQuestion(questionIndex, 'correct_answer', optionIndex)}
+                                className="option-radio"
+                                disabled={isUploading}
+                              />
+                              <span className="option-letter">{String.fromCharCode(65 + optionIndex)}</span>
+                              <input
+                                type="text"
+                                value={option}
+                                onChange={(e) => updateTestQuestionOption(questionIndex, optionIndex, e.target.value)}
+                                className="form-input"
+                                placeholder={`Đáp án ${String.fromCharCode(65 + optionIndex)}`}
+                                disabled={isUploading}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Progress Message */}
+                {uploadProgress && (
+                  <div className="form-progress">
+                    <div className="progress-spinner"></div>
+                    <span>{uploadProgress}</span>
+                  </div>
+                )}
+
+                <div className="step-navigation">
+                  <button type="button" onClick={prevStep} className="btn btn-secondary btn-lg">
+                    ← Quay lại
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUploading}
+                    className="btn btn-primary btn-lg"
+                  >
+                    {isUploading ? '⏳ Đang tạo khóa học...' : '✨ Tạo khóa học'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </form>
         </div>
-
-        {/* Progress Message */}
-        {uploadProgress && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700 flex items-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-700"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              {uploadProgress}
-            </p>
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isUploading}
-          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
-        >
-          {isUploading ? 'Đang tạo khóa học...' : 'Tạo khóa học'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }
