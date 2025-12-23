@@ -2,11 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import CourseCard from "./CourseCard";
 import type { CourseInfo } from "../types/course";
-
-// === CONFIG TỪ ENV ===
-const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID;
-const MODULE_NAME = import.meta.env.VITE_MODULE_NAME;
-const EVENT_TYPE = `${PACKAGE_ID}::${MODULE_NAME}::CourseCreated`;
+import { COURSE_CREATED_EVENT } from "../config/constants";
 
 const ExploreCourses = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +11,7 @@ const ExploreCourses = () => {
   const { data: eventsData, isLoading: isEventsLoading, error: eventsError } = useSuiClientQuery(
     "queryEvents",
     {
-      query: { MoveEventType: EVENT_TYPE },
+      query: { MoveEventType: COURSE_CREATED_EVENT },
       limit: 50,
       order: "descending",
     }

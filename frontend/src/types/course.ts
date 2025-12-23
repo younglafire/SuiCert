@@ -50,3 +50,11 @@ export interface CourseCertificate {
   test_score: string;
   completion_date: string;
 }
+
+export interface TeacherProfile {
+  id: string;
+  owner: string;
+  avatar_blob_id: string;
+  about: string;
+  contacts: string;
+}

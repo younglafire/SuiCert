@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import CourseModal from './CourseModal';
 import type { CourseInfo } from '../types/course';
-
-// ===========================
-// Constants
-// ===========================
-const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
-const MODULE_NAME = import.meta.env.VITE_MODULE_NAME || 'academy';
-const SUI_TO_MIST = 1_000_000_000;
-const WALRUS_AGGREGATOR_URL = import.meta.env.VITE_WALRUS_PUBLISHER_URL || 'https://aggregator.walrus-testnet.walrus.space';
-const DEFAULT_IMAGE = 'https://placehold.co/600x400?text=No+Image';
+import { 
+  COURSE_TICKET_TYPE, 
+  COURSE_CERTIFICATE_TYPE, 
+  WALRUS_AGGREGATOR_URL, 
+  SUI_TO_MIST,
+  DEFAULT_IMAGE_PLACEHOLDER 
+} from '../config/constants';
 
 interface CourseCardProps {
   course: CourseInfo;
@@ -33,7 +31,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   // ===========================
   const getImageUrl = (): string => {
     const blobId = course.thumbnail_blob_id;
-    if (!blobId) return DEFAULT_IMAGE;
+    if (!blobId) return DEFAULT_IMAGE_PLACEHOLDER;
     if (blobId.startsWith('http')) return blobId;
     return `${WALRUS_AGGREGATOR_URL}/v1/blobs/${blobId}`;
   };
@@ -57,7 +55,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         const ownedTickets = await suiClient.getOwnedObjects({
           owner: currentAccount.address,
           filter: {
-            StructType: `${PACKAGE_ID}::${MODULE_NAME}::CourseTicket`,
+            StructType: COURSE_TICKET_TYPE,
           },
           options: { showContent: true },
         });
@@ -75,7 +73,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         const ownedCertificates = await suiClient.getOwnedObjects({
           owner: currentAccount.address,
           filter: {
-            StructType: `${PACKAGE_ID}::${MODULE_NAME}::CourseCertificate`,
+            StructType: COURSE_CERTIFICATE_TYPE,
           },
           options: { showContent: true },
         });
@@ -117,7 +115,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             alt={course.title}
             className="w-full h-full object-cover object-top"
             onError={(e) => {
-              e.currentTarget.src = DEFAULT_IMAGE;
+              e.currentTarget.src = DEFAULT_IMAGE_PLACEHOLDER;
               e.currentTarget.onerror = null;
             }}
           />

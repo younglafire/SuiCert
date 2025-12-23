@@ -3,10 +3,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { fetchJsonFromWalrus, mistToSui, suiToVnd, formatVnd, formatSui, truncateAddress } from '../utils/helpers';
 import type { CourseInfo, CourseData } from '../types/course';
-
-const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
-const MODULE_NAME = 'academy';
-const WALRUS_AGGREGATOR_URL = 'https://aggregator.walrus-testnet.walrus.space';
+import { PACKAGE_ID, MODULE_NAME, WALRUS_AGGREGATOR_URL, COURSE_TICKET_TYPE } from '../config/constants';
 
 interface CourseModalProps {
   course: CourseInfo;
@@ -195,7 +192,7 @@ export default function CourseModal({
       const ownedTickets = await suiClient.getOwnedObjects({
         owner: currentAccount.address,
         filter: {
-          StructType: `${PACKAGE_ID}::${MODULE_NAME}::CourseTicket`,
+          StructType: COURSE_TICKET_TYPE,
         },
         options: {
           showContent: true,

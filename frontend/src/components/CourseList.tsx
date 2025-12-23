@@ -3,12 +3,7 @@ import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import type { SuiObjectData } from '@mysten/sui/client';
 import CourseCard from './CourseCard';
 import type { CourseInfo } from '../types/course';
-
-// ===========================
-// Constants
-// ===========================
-const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
-const MODULE_NAME = 'academy';
+import { COURSE_CREATED_EVENT } from '../config/constants';
 
 // ===========================
 // Component
@@ -33,7 +28,7 @@ export default function CourseList() {
         // Query CourseCreated events to find all courses
         const events = await suiClient.queryEvents({
           query: {
-            MoveEventType: `${PACKAGE_ID}::${MODULE_NAME}::CourseCreated`,
+            MoveEventType: COURSE_CREATED_EVENT,
           },
           limit: 50,
         });

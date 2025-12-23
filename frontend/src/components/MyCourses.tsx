@@ -3,12 +3,7 @@ import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import type { SuiObjectData } from '@mysten/sui/client';
 import CourseCard from './CourseCard';
 import type { CourseInfo } from '../types/course';
-
-// ===========================
-// Constants
-// ===========================
-const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
-const MODULE_NAME = 'academy';
+import { COURSE_TICKET_TYPE, COURSE_CERTIFICATE_TYPE } from '../config/constants';
 
 interface TicketData {
   course_id: string;
@@ -47,7 +42,7 @@ export default function MyCourses() {
         const ownedTickets = await suiClient.getOwnedObjects({
           owner: currentAccount.address,
           filter: {
-            StructType: `${PACKAGE_ID}::${MODULE_NAME}::CourseTicket`,
+            StructType: COURSE_TICKET_TYPE,
           },
           options: {
             showContent: true,
@@ -58,7 +53,7 @@ export default function MyCourses() {
         const ownedCertificates = await suiClient.getOwnedObjects({
           owner: currentAccount.address,
           filter: {
-            StructType: `${PACKAGE_ID}::${MODULE_NAME}::CourseCertificate`,
+            StructType: COURSE_CERTIFICATE_TYPE,
           },
           options: {
             showContent: true,

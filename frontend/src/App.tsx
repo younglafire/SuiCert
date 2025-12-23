@@ -6,8 +6,10 @@ import ExploreCourses from "./components/ExploreCourses";
 import PurchasedCourses from "./components/PurchasedCourses"; 
 import WalletBalance from "./components/WalletBalance";
 import CourseDigestManager from "./components/CourseDigestManager";
+import CreateTeacherProfile from "./components/CreateTeacherProfile";
+import UpdateTeacherProfile from "./components/UpdateTeacherProfile";
 
-type ViewState = "explore" | "my-courses" | "create" | "purchased" | "digests";
+type ViewState = "explore" | "my-courses" | "create" | "purchased" | "digests" | "create-profile" | "update-profile";
 
 function App() {
   const account = useCurrentAccount();
@@ -18,8 +20,10 @@ function App() {
       case "explore": return <ExploreCourses />;
       case "my-courses": return <MyCourses />;
       case "purchased": return <PurchasedCourses />;
-      case "create": return <CreateCourseForm onCreated={() => setCurrentView("my-courses")} />;
+      case "create": return <CreateCourseForm onCreated={() => setCurrentView("my-courses")} onNavigateToCreateProfile={() => setCurrentView("create-profile")} />;
       case "digests": return <CourseDigestManager />;
+      case "create-profile": return <CreateTeacherProfile onProfileCreated={() => setCurrentView("create")} onCancel={() => setCurrentView("explore")} />;
+      case "update-profile": return <UpdateTeacherProfile onProfileUpdated={() => setCurrentView("my-courses")} onCancel={() => setCurrentView("explore")} />;
       default: return <ExploreCourses />;
     }
   };
@@ -64,6 +68,8 @@ function App() {
                 <button onClick={() => setCurrentView("purchased")} style={getButtonStyle("purchased")}>🎓 Đã mua</button>
                 <button onClick={() => setCurrentView("my-courses")} style={getButtonStyle("my-courses")}>📚 Khóa học của tôi</button>
                 <button onClick={() => setCurrentView("create")} style={getButtonStyle("create")}>➕ Tạo khóa học</button>
+                <button onClick={() => setCurrentView("create-profile")} style={getButtonStyle("create-profile")}>👤 Tạo hồ sơ GV</button>
+                <button onClick={() => setCurrentView("update-profile")} style={getButtonStyle("update-profile")}>✏️ Sửa hồ sơ GV</button>
                 <button onClick={() => setCurrentView("digests")} style={getButtonStyle("digests")}>📋 Digest</button>
               </div>
 

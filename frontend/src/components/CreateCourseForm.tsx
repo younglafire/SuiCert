@@ -1,13 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
-import { useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
-import { uploadToWalrus, uploadJsonToWalrus, suiToMist, suiToVnd, formatVnd } from '../utils/helpers';
+import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import { uploadToWalrus, uploadJsonToWalrus, suiToVnd, formatVnd } from '../utils/helpers';
 import type { CourseData, CourseModule, CourseMaterial, TestQuestion } from '../types/course';
-
-// Constants
-const PACKAGE_ID = '0x27c0a3eed6f4a0baf67d373e7c5b72e2b2fa2a1c89ff4d55b046c6296b72a9f6';
-const MODULE_NAME = 'academy';
+import { PACKAGE_ID, MODULE_NAME, SUI_TO_MIST, TEACHER_PROFILE_TYPE } from '../config/constants';
 
 interface ModuleFormData {
   title: string;
@@ -31,12 +28,18 @@ interface QuestionFormData {
 // Thêm interface Props
 interface CreateCourseFormProps {
   onCreated?: () => void;
+  onNavigateToCreateProfile?: () => void;
 }
 
 // Sửa function signature
-export default function CreateCourseForm({ onCreated }: CreateCourseFormProps) {
+export default function CreateCourseForm({ onCreated, onNavigateToCreateProfile }: CreateCourseFormProps) {
   const currentAccount = useCurrentAccount();
+  const suiClient = useSuiClient();
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+
+  // Teacher profile check
+  const [hasTeacherProfile, setHasTeacherProfile] = useState<boolean | null>(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   // Basic course info
   const [title, setTitle] = useState('');
@@ -60,6 +63,43 @@ export default function CreateCourseForm({ onCreated }: CreateCourseFormProps) {
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+
+  // Check if user has teacher profile
+  useEffect(() => {
+    async function checkTeacherProfile() {
+      if (!currentAccount?.address) {
+        setCheckingProfile(false);
+        setHasTeacherProfile(false);
+        return;
+      }
+
+      try {
+        setCheckingProfile(true);
+        const objects = await suiClient.getOwnedObjects({
+          owner: currentAccount.address,
+          filter: {
+            StructType: TEACHER_PROFILE_TYPE,
+          },
+          options: {
+            showContent: true,
+          },
+        });
+
+        if (objects.data.length > 0 && objects.data[0].data) {
+          setHasTeacherProfile(true);
+        } else {
+          setHasTeacherProfile(false);
+        }
+      } catch (error) {
+        console.error('Error checking teacher profile:', error);
+        setHasTeacherProfile(false);
+      } finally {
+        setCheckingProfile(false);
+      }
+    }
+
+    checkTeacherProfile();
+  }, [currentAccount?.address, suiClient]);
 
   // Add module
   const addModule = () => {
@@ -261,7 +301,7 @@ export default function CreateCourseForm({ onCreated }: CreateCourseFormProps) {
 
       // Step 6: Create course on blockchain
       setUploadProgress('Đang tạo khóa học trên blockchain...');
-      const priceInMist = suiToMist(parseFloat(price));
+      const priceInMist = Math.floor(parseFloat(price) * SUI_TO_MIST);
 
       const tx = new Transaction();
       tx.moveCall({
@@ -335,9 +375,111 @@ export default function CreateCourseForm({ onCreated }: CreateCourseFormProps) {
     );
   }
 
+  // Loading state while checking profile
+  if (checkingProfile) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center py-12">
+          <svg
+            className="animate-spin mx-auto h-12 w-12 text-blue-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Đang kiểm tra hồ sơ giáo viên...</h3>
+        </div>
+      </div>
+    );
+  }
+
+  // No teacher profile - show prompt to create one
+  if (!hasTeacherProfile) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center py-12">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+            <svg
+              className="h-8 w-8 text-yellow-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Bạn cần tạo hồ sơ giáo viên trước</h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Để đăng khóa học trên SuiCert Academy, bạn cần có hồ sơ giáo viên. 
+            Hồ sơ này sẽ giúp học viên biết thêm về bạn và liên hệ khi cần thiết.
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-md mx-auto text-left">
+            <h4 className="font-semibold text-blue-800 mb-2">Hồ sơ giáo viên bao gồm:</h4>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>✓ Ảnh đại diện của bạn</li>
+              <li>✓ Giới thiệu về bản thân và kinh nghiệm</li>
+              <li>✓ Thông tin liên hệ (chỉ hiển thị cho học viên đã mua khóa học)</li>
+            </ul>
+          </div>
+          {onNavigateToCreateProfile ? (
+            <button
+              onClick={onNavigateToCreateProfile}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              Tạo hồ sơ giáo viên ngay
+            </button>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Vui lòng vào menu "👤 Tạo hồ sơ GV" để tạo hồ sơ giáo viên
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Tạo khóa học mới</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Tạo khóa học mới</h2>
+        <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          Hồ sơ GV đã xác minh
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}

@@ -26,7 +26,7 @@ const CourseDigestManager = () => {
         digest: digest,
         options: {
           showInput: true,
-          showOutput: true,
+          showObjectChanges: true,
           showEffects: true,
           showEvents: true,
         },

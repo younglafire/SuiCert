@@ -1,14 +1,10 @@
 import { useMemo, useState } from "react";
 import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit";
-
-// === CONFIG TỪ ENV ===
-const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID;
-const MODULE_NAME = import.meta.env.VITE_MODULE_NAME;
-const CERTIFICATE_TYPE = `${PACKAGE_ID}::${MODULE_NAME}::CourseCertificate`;
-
-// === CẤU HÌNH TỪ ENV ===
-const WALRUS_AGGREGATOR_URL = import.meta.env.VITE_WALRUS_PUBLISHER_URL || 'https://aggregator.walrus-testnet.walrus.space';
-const DEFAULT_IMAGE = "https://placehold.co/600x400?text=No+Image";
+import { 
+  COURSE_CERTIFICATE_TYPE, 
+  WALRUS_AGGREGATOR_URL, 
+  DEFAULT_IMAGE_PLACEHOLDER 
+} from "../config/constants";
 
 const PurchasedCourses = () => {
   const account = useCurrentAccount();
@@ -21,7 +17,7 @@ const PurchasedCourses = () => {
     "getOwnedObjects",
     {
       owner: account?.address || "",
-      filter: { StructType: CERTIFICATE_TYPE },
+      filter: { StructType: COURSE_CERTIFICATE_TYPE },
       options: { showContent: true },
     },
     { enabled: !!account }
@@ -157,7 +153,7 @@ const PurchasedCourses = () => {
             // === LOGIC GHÉP LINK ẢNH ===
             const getImageUrl = () => {
               const blobId = fields.thumbnail_blob_id;
-              if (!blobId) return DEFAULT_IMAGE;
+              if (!blobId) return DEFAULT_IMAGE_PLACEHOLDER;
               if (blobId.startsWith("http")) return blobId;
               return `${WALRUS_AGGREGATOR_URL}/v1/blobs/${blobId}`;
             };
@@ -185,7 +181,7 @@ const PurchasedCourses = () => {
                     alt={fields.title} 
                     className="w-full h-full object-cover object-top"
                     onError={(e) => {
-                      e.currentTarget.src = DEFAULT_IMAGE;
+                      e.currentTarget.src = DEFAULT_IMAGE_PLACEHOLDER;
                       e.currentTarget.onerror = null;
                     }}
                   />
