@@ -1,0 +1,11 @@
+[build]
+  # Build command for Vite
+  command = "npm run build"
+  # Output directory (where Vite outputs the built files)
+  publish = "dist"
+
+# SPA redirect - send all routes to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
