@@ -76,39 +76,39 @@ export default function CreateCourseForm() {
     if (currentStep < totalSteps) {
       // Validate current step before proceeding
       if (currentStep === 1) {
-        if (!title.trim()) {
-          alert('Vui lòng nhập tiêu đề khóa học');
+          if (!title.trim()) {
+           alert('Please enter a course title');
           return;
         }
-        if (!description.trim()) {
-          alert('Vui lòng nhập mô tả khóa học');
+         if (!description.trim()) {
+           alert('Please enter a course description');
           return;
         }
-        if (!price || parseFloat(price) < 0) {
-          alert('Vui lòng nhập giá hợp lệ');
+         if (!price || parseFloat(price) < 0) {
+           alert('Please enter a valid price');
           return;
         }
-        if (!thumbnailFile) {
-          alert('Vui lòng chọn ảnh đại diện');
+         if (!thumbnailFile) {
+           alert('Please choose a cover image');
           return;
         }
-        if (!instructorName.trim()) {
-          alert('Vui lòng nhập tên giảng viên');
+         if (!instructorName.trim()) {
+           alert('Please enter the instructor name');
           return;
         }
       }
       if (currentStep === 2) {
-        if (modules.length === 0) {
-          alert('Vui lòng thêm ít nhất một module');
+         if (modules.length === 0) {
+           alert('Please add at least one module');
           return;
         }
         for (let i = 0; i < modules.length; i++) {
-          if (!modules[i].title.trim()) {
-            alert(`Vui lòng nhập tiêu đề cho module ${i + 1}`);
+           if (!modules[i].title.trim()) {
+             alert(`Please enter a title for module ${i + 1}`);
             return;
           }
-          if (!modules[i].videoFile) {
-            alert(`Vui lòng chọn video cho module ${i + 1}`);
+           if (!modules[i].videoFile) {
+             alert(`Please upload a video for module ${i + 1}`);
             return;
           }
         }
@@ -257,53 +257,53 @@ export default function CreateCourseForm() {
     e.preventDefault();
 
     // Validation
-    if (!title.trim()) {
-      alert('Vui lòng nhập tiêu đề khóa học');
+     if (!title.trim()) {
+       alert('Please enter a course title');
       return;
     }
-    if (!description.trim()) {
-      alert('Vui lòng nhập mô tả khóa học');
+     if (!description.trim()) {
+       alert('Please enter a course description');
       return;
     }
-    if (!price || parseFloat(price) < 0) {
-      alert('Vui lòng nhập giá hợp lệ');
+     if (!price || parseFloat(price) < 0) {
+       alert('Please enter a valid price');
       return;
     }
-    if (!thumbnailFile) {
-      alert('Vui lòng chọn ảnh đại diện');
+     if (!thumbnailFile) {
+       alert('Please choose a cover image');
       return;
     }
-    // Validate instructor info (chỉ cần tên)
-    if (!instructorName.trim()) {
-      alert('Vui lòng nhập tên giảng viên');
+     // Validate instructor info (chỉ cần tên)
+     if (!instructorName.trim()) {
+       alert('Please enter the instructor name');
       return;
     }
-    if (modules.length === 0) {
-      alert('Vui lòng thêm ít nhất một module');
+     if (modules.length === 0) {
+       alert('Please add at least one module');
       return;
     }
     for (let i = 0; i < modules.length; i++) {
-      if (!modules[i].title.trim()) {
-        alert(`Vui lòng nhập tiêu đề cho module ${i + 1}`);
+       if (!modules[i].title.trim()) {
+         alert(`Please enter a title for module ${i + 1}`);
         return;
       }
-      if (!modules[i].videoFile) {
-        alert(`Vui lòng chọn video cho module ${i + 1}`);
+       if (!modules[i].videoFile) {
+         alert(`Please upload a video for module ${i + 1}`);
         return;
       }
     }
-    if (testQuestions.length === 0) {
-      alert('Vui lòng thêm ít nhất một câu hỏi kiểm tra');
+     if (testQuestions.length === 0) {
+       alert('Please add at least one quiz question');
       return;
     }
     for (let i = 0; i < testQuestions.length; i++) {
-      if (!testQuestions[i].question.trim()) {
-        alert(`Vui lòng nhập câu hỏi ${i + 1}`);
+       if (!testQuestions[i].question.trim()) {
+         alert(`Please enter question ${i + 1}`);
         return;
       }
       for (let j = 0; j < testQuestions[i].options.length; j++) {
-        if (!testQuestions[i].options[j].trim()) {
-          alert(`Vui lòng nhập đáp án ${j + 1} cho câu hỏi ${i + 1}`);
+         if (!testQuestions[i].options[j].trim()) {
+           alert(`Please enter answer ${j + 1} for question ${i + 1}`);
           return;
         }
       }
@@ -313,14 +313,14 @@ export default function CreateCourseForm() {
 
     try {
       // Step 1: Upload thumbnail
-      setUploadProgress('Đang tải ảnh đại diện...');
+       setUploadProgress('Uploading cover image...');
       const thumbnailBlobId = await uploadToWalrus(thumbnailFile);
 
       // Step 2: Upload course materials
       const uploadedCourseMaterials: CourseMaterial[] = [];
       for (let i = 0; i < courseMaterials.length; i++) {
         if (courseMaterials[i].file) {
-          setUploadProgress(`Đang tải tài liệu khóa học ${i + 1}/${courseMaterials.length}...`);
+           setUploadProgress(`Uploading course material ${i + 1}/${courseMaterials.length}...`);
           const blobId = await uploadToWalrus(courseMaterials[i].file!);
           uploadedCourseMaterials.push({
             name: courseMaterials[i].name,
@@ -333,13 +333,13 @@ export default function CreateCourseForm() {
       // Step 3: Upload modules (videos and materials)
       const uploadedModules: CourseModule[] = [];
       for (let i = 0; i < modules.length; i++) {
-        setUploadProgress(`Đang tải video module ${i + 1}/${modules.length}...`);
+         setUploadProgress(`Uploading module video ${i + 1}/${modules.length}...`);
         const videoBlobId = await uploadToWalrus(modules[i].videoFile!);
 
         const uploadedModuleMaterials: CourseMaterial[] = [];
         for (let j = 0; j < modules[i].materials.length; j++) {
           if (modules[i].materials[j].file) {
-            setUploadProgress(`Đang tải tài liệu module ${i + 1}...`);
+             setUploadProgress(`Uploading module material ${i + 1}...`);
             const blobId = await uploadToWalrus(modules[i].materials[j].file!);
             uploadedModuleMaterials.push({
               name: modules[i].materials[j].name,
@@ -365,7 +365,7 @@ export default function CreateCourseForm() {
       }));
 
       // Step 5: Upload course data as JSON
-      setUploadProgress('Đang tải dữ liệu khóa học...');
+       setUploadProgress('Uploading course data...');
       const courseData: CourseData = {
         modules: uploadedModules,
         materials: uploadedCourseMaterials.length > 0 ? uploadedCourseMaterials : undefined,
@@ -378,15 +378,15 @@ export default function CreateCourseForm() {
       const courseDataBlobId = await uploadJsonToWalrus(courseData);
 
       // Step 6: Create course on blockchain
-      setUploadProgress('Đang tạo khóa học trên blockchain...');
+       setUploadProgress('Creating course on blockchain...');
       const priceInMist = suiToMist(parseFloat(price));
 
       // Profile ID đã được kiểm tra ở đầu component
-      if (!teacherProfileId) {
-        throw new Error('Không tìm thấy hồ sơ giáo viên trên blockchain');
+       if (!teacherProfileId) {
+         throw new Error('Teacher profile not found on-chain');
       }
 
-      setUploadProgress('Đang tạo khóa học...');
+       setUploadProgress('Creating course...');
       const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::create_course`,
@@ -403,9 +403,9 @@ export default function CreateCourseForm() {
       signAndExecuteTransaction(
         { transaction: tx },
         {
-          onSuccess: (result) => {
-            console.log('Tạo khóa học thành công:', result);
-            alert('Khóa học đã được tạo thành công!');
+           onSuccess: (result) => {
+             console.log('Course created successfully:', result);
+             alert('Course created successfully!');
             
             // Reset form
             setTitle('');
@@ -420,19 +420,19 @@ export default function CreateCourseForm() {
             setInstructorContacts('');
             setUploadProgress('');
 
-            // Điều hướng về trang chủ để xem khóa học mới
-            navigate('/');
-          },
-          onError: (error) => {
-            console.error('Lỗi tạo khóa học:', error);
-            alert(`Tạo khóa học thất bại: ${error.message}`);
+             // Navigate back to home to see the new course
+             navigate('/');
+           },
+           onError: (error) => {
+             console.error('Create course error:', error);
+             alert(`Failed to create course: ${error.message}`);
             setUploadProgress('');
           },
         }
       );
-    } catch (error) {
-      console.error('Lỗi:', error);
-      alert(`Lỗi: ${error instanceof Error ? error.message : 'Đã xảy ra lỗi'}`);
+     } catch (error) {
+       console.error('Error:', error);
+       alert(`Error: ${error instanceof Error ? error.message : 'An error occurred'}`);
       setUploadProgress('');
     } finally {
       setIsUploading(false);
@@ -456,8 +456,8 @@ export default function CreateCourseForm() {
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">Chưa kết nối ví</h3>
-          <p className="mt-1 text-sm text-gray-500">Vui lòng kết nối ví để tạo khóa học</p>
+          <h3 className="mt-2 text-lg font-medium text-gray-900">Wallet not connected</h3>
+          <p className="mt-1 text-sm text-gray-500">Please connect your wallet to create a course</p>
         </div>
       </div>
     );
@@ -470,7 +470,7 @@ export default function CreateCourseForm() {
         <div className="form-container">
           <div className="profile-loading">
             <div className="spinner"></div>
-            <p>Đang kiểm tra hồ sơ giảng viên...</p>
+            <p>Checking instructor profile...</p>
           </div>
         </div>
       </div>
@@ -484,10 +484,10 @@ export default function CreateCourseForm() {
         <div className="form-container">
           <div className="profile-required">
             <div className="profile-required-icon">👨‍🏫</div>
-            <h3>Bạn cần tạo hồ sơ giảng viên trước</h3>
-            <p>Để đăng khóa học, bạn cần có hồ sơ giảng viên được xác thực trên blockchain.</p>
+            <h3>You need to create an instructor profile first</h3>
+            <p>To publish courses, you need a blockchain-verified instructor profile.</p>
             <Link to="/teacher-profile" className="btn btn-primary btn-lg">
-              Tạo hồ sơ giảng viên
+              Create instructor profile
             </Link>
           </div>
         </div>
@@ -499,8 +499,8 @@ export default function CreateCourseForm() {
     <div className="form-page">
       <div className="form-container">
         <div className="form-header">
-          <h2>🎓 Tạo khóa học mới</h2>
-          <p>Tạo khóa học và nhận thanh toán bằng SUI token. Chứng chỉ Soulbound NFT sẽ được cấp cho học viên hoàn thành.</p>
+          <h2>🎓 Create a new course</h2>
+          <p>Create a course and get paid in SUI tokens. Soulbound NFT certificates will be issued to students who complete it.</p>
         </div>
 
         {/* Step Progress */}
@@ -508,24 +508,24 @@ export default function CreateCourseForm() {
           <div className={`step-item ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`} onClick={() => goToStep(1)}>
             <div className="step-number">{currentStep > 1 ? '✓' : '1'}</div>
             <div className="step-info">
-              <span className="step-title">Thông tin cơ bản</span>
-              <span className="step-desc">Tiêu đề, giá, giảng viên</span>
+               <span className="step-title">Basic information</span>
+               <span className="step-desc">Title, price, instructor</span>
             </div>
           </div>
           <div className="step-connector"></div>
           <div className={`step-item ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`} onClick={() => goToStep(2)}>
             <div className="step-number">{currentStep > 2 ? '✓' : '2'}</div>
             <div className="step-info">
-              <span className="step-title">Nội dung khóa học</span>
-              <span className="step-desc">Video & tài liệu</span>
+               <span className="step-title">Course content</span>
+               <span className="step-desc">Videos & materials</span>
             </div>
           </div>
           <div className="step-connector"></div>
           <div className={`step-item ${currentStep >= 3 ? 'active' : ''}`} onClick={() => goToStep(3)}>
             <div className="step-number">3</div>
             <div className="step-info">
-              <span className="step-title">Bài kiểm tra</span>
-              <span className="step-desc">Câu hỏi & đáp án</span>
+               <span className="step-title">Final quiz</span>
+               <span className="step-desc">Questions & answers</span>
             </div>
           </div>
         </div>
@@ -538,34 +538,34 @@ export default function CreateCourseForm() {
               <div className="step-content">
                 <div className="form-section">
                   <div className="form-section-title">
-                    <h3>📝 Thông tin cơ bản</h3>
-                    <span className="section-badge">Bước 1/3</span>
+                     <h3>📝 Basic information</h3>
+                     <span className="section-badge">Step 1/3</span>
                   </div>
                   
                   <div className="form-group">
                     <label className="form-label">
-                      Tiêu đề khóa học <span className="required">*</span>
+                       Course title <span className="required">*</span>
                     </label>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       className="form-input"
-                      placeholder="VD: Lập trình Sui Move cho người mới bắt đầu"
+                       placeholder="e.g., Sui Move programming for beginners"
                       disabled={isUploading}
                     />
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">
-                      Mô tả khóa học <span className="required">*</span>
+                       Course description <span className="required">*</span>
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={4}
                       className="form-textarea"
-                      placeholder="Mô tả chi tiết về khóa học, nội dung sẽ học, đối tượng phù hợp..."
+                       placeholder="Detailed description of the course, learning outcomes, target audience..."
                       disabled={isUploading}
                     />
                   </div>
@@ -573,7 +573,7 @@ export default function CreateCourseForm() {
                   <div className="form-row">
                     <div className="form-group">
                       <label className="form-label">
-                        Giá khóa học (SUI) <span className="required">*</span>
+                         Course price (SUI) <span className="required">*</span>
                       </label>
                       <input
                         type="number"
@@ -582,7 +582,7 @@ export default function CreateCourseForm() {
                         step="0.001"
                         min="0"
                         className="form-input"
-                        placeholder="VD: 1.5"
+                         placeholder="e.g., 1.5"
                         disabled={isUploading}
                       />
                       {price && !isNaN(parseFloat(price)) && (
@@ -594,7 +594,7 @@ export default function CreateCourseForm() {
 
                     <div className="form-group">
                       <label className="form-label">
-                        Ảnh đại diện <span className="required">*</span>
+                         Cover image <span className="required">*</span>
                       </label>
                       <input
                         type="file"
@@ -615,28 +615,28 @@ export default function CreateCourseForm() {
                 {/* Instructor Information */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <h3>👨‍🏫 Thông tin giảng viên</h3>
-                    <span className="section-badge section-badge-success">Đã liên kết</span>
+                     <h3>👨‍🏫 Instructor information</h3>
+                     <span className="section-badge section-badge-success">Linked</span>
                   </div>
-                  <p className="form-section-desc">
-                    Thông tin được lấy từ <Link to="/teacher-profile" className="link-primary">hồ sơ của bạn</Link> và sẽ hiển thị cho học viên.
-                  </p>
+                   <p className="form-section-desc">
+                     Information is pulled from your <Link to="/teacher-profile" className="link-primary">profile</Link> and shown to learners.
+                   </p>
                   <div className="profile-preview">
-                    <div className="preview-label">📋 Thông tin từ hồ sơ:</div>
+                     <div className="preview-label">📋 Profile details:</div>
                     <div className="preview-content">
                       <div className="preview-item">
-                        <span className="preview-title">Tên giảng viên:</span>
+                         <span className="preview-title">Instructor name:</span>
                         <span className="preview-value">{instructorName}</span>
                       </div>
                       {instructorAbout && (
                         <div className="preview-item">
-                          <span className="preview-title">Giới thiệu:</span>
+                           <span className="preview-title">About:</span>
                           <span className="preview-value">{instructorAbout}</span>
                         </div>
                       )}
                       {instructorContacts && (
                         <div className="preview-item">
-                          <span className="preview-title">Liên hệ:</span>
+                           <span className="preview-title">Contact:</span>
                           <span className="preview-value">{instructorContacts}</span>
                         </div>
                       )}
@@ -647,7 +647,7 @@ export default function CreateCourseForm() {
                 <div className="step-navigation">
                   <div></div>
                   <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
-                    Tiếp theo: Nội dung khóa học →
+                     Next: Course content →
                   </button>
                 </div>
               </div>
@@ -659,8 +659,8 @@ export default function CreateCourseForm() {
                 {/* Modules */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <h3>🎬 Modules khóa học</h3>
-                    <span className="section-badge">Bước 2/3</span>
+                     <h3>🎬 Course modules</h3>
+                     <span className="section-badge">Step 2/3</span>
                     <button
                       type="button"
                       onClick={addModule}
@@ -668,7 +668,7 @@ export default function CreateCourseForm() {
                       style={{ marginLeft: 'auto' }}
                       disabled={isUploading}
                     >
-                      + Thêm module
+                       + Add module
                     </button>
                   </div>
 
@@ -686,40 +686,40 @@ export default function CreateCourseForm() {
                             className="form-card-delete"
                             disabled={isUploading}
                           >
-                            Xóa
+                             Remove
                           </button>
                         )}
                       </div>
 
                       <div className="form-group">
                         <label className="form-label">
-                          Tiêu đề module <span className="required">*</span>
+                           Module title <span className="required">*</span>
                         </label>
                         <input
                           type="text"
                           value={module.title}
                           onChange={(e) => updateModule(moduleIndex, 'title', e.target.value)}
                           className="form-input"
-                          placeholder="VD: Giới thiệu về Sui Move"
+                           placeholder="e.g., Introduction to Sui Move"
                           disabled={isUploading}
                         />
                       </div>
 
                       <div className="form-group">
-                        <label className="form-label">Mô tả module</label>
+                         <label className="form-label">Module description</label>
                         <textarea
                           value={module.description}
                           onChange={(e) => updateModule(moduleIndex, 'description', e.target.value)}
                           rows={2}
                           className="form-textarea"
-                          placeholder="Mô tả nội dung module"
+                           placeholder="Describe the module content"
                           disabled={isUploading}
                         />
                       </div>
 
                       <div className="form-group">
                         <label className="form-label">
-                          Video bài giảng <span className="required">*</span>
+                           Lecture video <span className="required">*</span>
                         </label>
                         <input
                           type="file"
@@ -739,19 +739,19 @@ export default function CreateCourseForm() {
                       {/* Module Materials */}
                       <div className="form-nested">
                         <div className="form-nested-header">
-                          <span className="form-nested-title">📎 Tài liệu đính kèm</span>
+                           <span className="form-nested-title">📎 Attached materials</span>
                           <button
                             type="button"
                             onClick={() => addModuleMaterial(moduleIndex)}
                             className="btn btn-success btn-sm"
                             disabled={isUploading}
                           >
-                            + Thêm
+                             + Add
                           </button>
                         </div>
 
                         {module.materials.length === 0 ? (
-                          <p className="form-nested-empty">Chưa có tài liệu. Nhấn "+ Thêm" để thêm tài liệu cho module này.</p>
+                           <p className="form-nested-empty">No materials yet. Click "+ Add" to attach materials for this module.</p>
                         ) : (
                           module.materials.map((material, materialIndex) => (
                             <div key={materialIndex} className="form-nested-card">
@@ -761,7 +761,7 @@ export default function CreateCourseForm() {
                                   value={material.name}
                                   onChange={(e) => updateModuleMaterial(moduleIndex, materialIndex, 'name', e.target.value)}
                                   className="form-input"
-                                  placeholder="Tên tài liệu"
+                                   placeholder="Material name"
                                   disabled={isUploading}
                                 />
                                 <select
@@ -772,7 +772,7 @@ export default function CreateCourseForm() {
                                 >
                                   <option value="pdf">PDF</option>
                                   <option value="word">Word</option>
-                                  <option value="other">Khác</option>
+                                   <option value="other">Other</option>
                                 </select>
                                 <input
                                   type="file"
@@ -800,8 +800,8 @@ export default function CreateCourseForm() {
                 {/* Course Materials (Optional) */}
                 <div className="form-section">
                   <div className="form-section-title">
-                    <h3>📚 Tài liệu chung</h3>
-                    <span className="section-badge section-badge-optional">Tùy chọn</span>
+                     <h3>📚 Shared materials</h3>
+                     <span className="section-badge section-badge-optional">Optional</span>
                     <button
                       type="button"
                       onClick={addCourseMaterial}
@@ -809,14 +809,14 @@ export default function CreateCourseForm() {
                       style={{ marginLeft: 'auto' }}
                       disabled={isUploading}
                     >
-                      + Thêm tài liệu
+                       + Add material
                     </button>
                   </div>
-                  <p className="form-section-desc">Tài liệu dùng chung cho toàn khóa học (slide, ebook...)</p>
+                   <p className="form-section-desc">Shared resources for the entire course (slides, ebooks...)</p>
 
                   {courseMaterials.length === 0 ? (
                     <div className="form-empty">
-                      <p>📄 Chưa có tài liệu chung nào.</p>
+                       <p>📄 No shared materials yet.</p>
                     </div>
                   ) : (
                     <div className="materials-grid">
@@ -838,7 +838,7 @@ export default function CreateCourseForm() {
                             value={material.name}
                             onChange={(e) => updateCourseMaterial(index, 'name', e.target.value)}
                             className="form-input"
-                            placeholder="Tên tài liệu"
+                             placeholder="Material name"
                             disabled={isUploading}
                           />
                           <select
@@ -849,7 +849,7 @@ export default function CreateCourseForm() {
                           >
                             <option value="pdf">PDF</option>
                             <option value="word">Word</option>
-                            <option value="other">Khác</option>
+                             <option value="other">Other</option>
                           </select>
                           <input
                             type="file"
@@ -865,10 +865,10 @@ export default function CreateCourseForm() {
 
                 <div className="step-navigation">
                   <button type="button" onClick={prevStep} className="btn btn-secondary btn-lg">
-                    ← Quay lại
+                     ← Go back
                   </button>
                   <button type="button" onClick={nextStep} className="btn btn-primary btn-lg">
-                    Tiếp theo: Bài kiểm tra →
+                     Next: Final quiz →
                   </button>
                 </div>
               </div>
@@ -879,8 +879,8 @@ export default function CreateCourseForm() {
               <div className="step-content">
                 <div className="form-section">
                   <div className="form-section-title">
-                    <h3>📝 Bài kiểm tra cuối khóa</h3>
-                    <span className="section-badge">Bước 3/3</span>
+                     <h3>📝 Final quiz</h3>
+                     <span className="section-badge">Step 3/3</span>
                     <button
                       type="button"
                       onClick={addTestQuestion}
@@ -888,14 +888,14 @@ export default function CreateCourseForm() {
                       style={{ marginLeft: 'auto' }}
                       disabled={isUploading}
                     >
-                      + Thêm câu hỏi
+                       + Add question
                     </button>
                   </div>
 
                   <div className="passing-score-card">
                     <div className="passing-score-info">
-                      <span className="passing-score-label">🎯 Điểm đạt yêu cầu</span>
-                      <span className="passing-score-desc">Học viên cần đạt điểm này để nhận chứng chỉ</span>
+                       <span className="passing-score-label">🎯 Required passing score</span>
+                       <span className="passing-score-desc">Learners must reach this score to earn the certificate</span>
                     </div>
                     <div className="passing-score-input">
                       <input
@@ -912,7 +912,7 @@ export default function CreateCourseForm() {
                   </div>
 
                   <div className="questions-summary">
-                    <span>📋 Tổng số câu hỏi: <strong>{testQuestions.length}</strong></span>
+                     <span>📋 Total questions: <strong>{testQuestions.length}</strong></span>
                   </div>
 
                   {testQuestions.map((question, questionIndex) => (
@@ -920,7 +920,7 @@ export default function CreateCourseForm() {
                       <div className="form-card-header">
                         <div className="form-card-title">
                           <span className="num">{questionIndex + 1}</span>
-                          Câu hỏi
+                           Question
                         </div>
                         {testQuestions.length > 1 && (
                           <button
@@ -929,27 +929,27 @@ export default function CreateCourseForm() {
                             className="form-card-delete"
                             disabled={isUploading}
                           >
-                            Xóa
+                             Remove
                           </button>
                         )}
                       </div>
 
                       <div className="form-group">
                         <label className="form-label">
-                          Nội dung câu hỏi <span className="required">*</span>
+                           Question text <span className="required">*</span>
                         </label>
                         <textarea
                           value={question.question}
                           onChange={(e) => updateTestQuestion(questionIndex, 'question', e.target.value)}
                           rows={2}
                           className="form-textarea"
-                          placeholder="Nhập nội dung câu hỏi..."
+                           placeholder="Enter the question..."
                           disabled={isUploading}
                         />
                       </div>
 
                       <div className="form-group">
-                        <label className="form-label">Các đáp án (chọn đáp án đúng):</label>
+                         <label className="form-label">Answers (mark the correct one):</label>
                         <div className="options-list">
                           {question.options.map((option, optionIndex) => (
                             <div key={optionIndex} className={`option-row ${question.correct_answer === optionIndex ? 'correct' : ''}`}>
@@ -967,7 +967,7 @@ export default function CreateCourseForm() {
                                 value={option}
                                 onChange={(e) => updateTestQuestionOption(questionIndex, optionIndex, e.target.value)}
                                 className="form-input"
-                                placeholder={`Đáp án ${String.fromCharCode(65 + optionIndex)}`}
+                                 placeholder={`Answer ${String.fromCharCode(65 + optionIndex)}`}
                                 disabled={isUploading}
                               />
                             </div>
@@ -988,14 +988,14 @@ export default function CreateCourseForm() {
 
                 <div className="step-navigation">
                   <button type="button" onClick={prevStep} className="btn btn-secondary btn-lg">
-                    ← Quay lại
+                     ← Go back
                   </button>
                   <button
                     type="submit"
                     disabled={isUploading}
                     className="btn btn-primary btn-lg"
                   >
-                    {isUploading ? '⏳ Đang tạo khóa học...' : '✨ Tạo khóa học'}
+                     {isUploading ? '⏳ Creating course...' : '✨ Create course'}
                   </button>
                 </div>
               </div>
