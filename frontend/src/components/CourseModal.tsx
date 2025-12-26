@@ -75,7 +75,7 @@ export default function CourseModal({
         }
       } catch (err) {
         console.error('Error loading course data:', err);
-        setError('Không thể tải dữ liệu khóa học');
+        setError('Unable to load course data');
       } finally {
         setLoading(false);
       }
@@ -191,7 +191,7 @@ export default function CourseModal({
   // Handle purchase
   const handlePurchase = async () => {
     if (!currentAccount) {
-      alert('Vui lòng kết nối ví');
+      alert('Please connect your wallet');
       return;
     }
 
@@ -213,19 +213,19 @@ export default function CourseModal({
         {
           onSuccess: (result) => {
             console.log('Purchase successful:', result);
-            alert('Đăng ký thành công! Bạn đã nhận được vé tham gia khóa học.');
+            alert('Enrollment successful! You received a course ticket.');
             onPurchaseSuccess();
           },
           onError: (error) => {
             console.error('Purchase error:', error);
-            alert(`Đăng ký thất bại: ${error.message}`);
+            alert(`Enrollment failed: ${error.message}`);
             setPurchasing(false);
           },
         }
       );
     } catch (err) {
       console.error('Purchase error:', err);
-      alert(`Lỗi: ${err instanceof Error ? err.message : 'Đã xảy ra lỗi'}`);
+      alert(`Error: ${err instanceof Error ? err.message : 'An error occurred'}`);
       setPurchasing(false);
     }
   };
@@ -236,7 +236,7 @@ export default function CourseModal({
 
     // Check if all questions are answered
     if (testAnswers.some(answer => answer === -1)) {
-      alert('Vui lòng trả lời tất cả các câu hỏi');
+      alert('Please answer all questions');
       return;
     }
 
@@ -256,12 +256,12 @@ export default function CourseModal({
   // Issue certificate
   const handleIssueCertificate = async () => {
     if (!studentName.trim()) {
-      alert('Vui lòng nhập tên của bạn');
+      alert('Please enter your name');
       return;
     }
 
     if (!currentAccount) {
-      alert('Vui lòng kết nối ví');
+      alert('Please connect your wallet');
       return;
     }
 
@@ -288,7 +288,7 @@ export default function CourseModal({
       });
 
       if (!ticket || !ticket.data) {
-        throw new Error('Không tìm thấy vé khóa học');
+        throw new Error('Course ticket not found');
       }
 
       const tx = new Transaction();
@@ -306,21 +306,21 @@ export default function CourseModal({
         { transaction: tx },
         {
           onSuccess: (result) => {
-            console.log('Certificate issued:', result);
-            alert('Chúc mừng! Bạn đã nhận được chứng chỉ hoàn thành khóa học.');
+             console.log('Certificate issued:', result);
+             alert('Congratulations! You received the course completion certificate.');
             onCertificateSuccess();
             onClose();
           },
           onError: (error) => {
-            console.error('Certificate error:', error);
-            alert(`Cấp chứng chỉ thất bại: ${error.message}`);
+             console.error('Certificate error:', error);
+             alert(`Certificate issuance failed: ${error.message}`);
             setIssuingCertificate(false);
           },
         }
       );
     } catch (err) {
-      console.error('Certificate error:', err);
-      alert(`Lỗi: ${err instanceof Error ? err.message : 'Đã xảy ra lỗi'}`);
+       console.error('Certificate error:', err);
+       alert(`Error: ${err instanceof Error ? err.message : 'An error occurred'}`);
       setIssuingCertificate(false);
     }
   };
@@ -340,7 +340,7 @@ export default function CourseModal({
         {loading ? (
           <div className="modal-loading">
             <div className="loading-spinner"></div>
-            <p>Đang tải thông tin khóa học...</p>
+            <p>Loading course information...</p>
           </div>
         ) : error || !courseData ? (
           <div className="modal-error">
@@ -348,7 +348,7 @@ export default function CourseModal({
               <circle cx="12" cy="12" r="10"/>
               <path d="M12 8v4m0 4h.01"/>
             </svg>
-            <p>{error || 'Không thể tải dữ liệu khóa học'}</p>
+             <p>{error || 'Unable to load course data'}</p>
           </div>
         ) : showTest ? (
             /* Test Interface - Redesigned */
@@ -356,15 +356,15 @@ export default function CourseModal({
               {/* Test Header */}
               <div className="test-header">
                 <div className="test-header-info">
-                  <h2 className="test-title">Bài kiểm tra cuối khóa</h2>
+                   <h2 className="test-title">Final quiz</h2>
                   <p className="test-subtitle">{course.title}</p>
                 </div>
                 <div className="test-meta">
                   <span className="test-questions-count">
-                    {courseData.test_questions.length} câu hỏi
+                     {courseData.test_questions.length} questions
                   </span>
                   <span className="test-passing-score">
-                    Điểm đạt: {courseData.passing_score || 70}%
+                     Passing score: {courseData.passing_score || 70}%
                   </span>
                 </div>
               </div>
@@ -378,19 +378,19 @@ export default function CourseModal({
                     </svg>
                   </div>
                   <div className="result-score">{testScore}%</div>
-                  <h3 className="result-title">Xuất sắc! 🎉</h3>
+                  <h3 className="result-title">Excellent! 🎉</h3>
                   <p className="result-message">
-                    Bạn đã vượt qua bài kiểm tra. Nhập tên để nhận chứng chỉ Soulbound NFT.
+                    You passed the quiz. Enter your name to receive the Soulbound NFT certificate.
                   </p>
                   
                   <div className="certificate-form">
-                    <label className="form-label">Tên hiển thị trên chứng chỉ</label>
+                    <label className="form-label">Name to display on certificate</label>
                     <input
                       type="text"
                       value={studentName}
                       onChange={(e) => setStudentName(e.target.value)}
                       className="certificate-name-input"
-                      placeholder="Nguyễn Văn A"
+                      placeholder="John Doe"
                       disabled={issuingCertificate}
                     />
                     <button
@@ -401,14 +401,14 @@ export default function CourseModal({
                       {issuingCertificate ? (
                         <>
                           <div className="loading-spinner small"></div>
-                          Đang tạo chứng chỉ...
+                          Creating certificate...
                         </>
                       ) : (
                         <>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M12 15l-3-3m0 0l3-3m-3 3h12M3 12a9 9 0 1018 0 9 9 0 00-18 0z"/>
                           </svg>
-                          Nhận chứng chỉ NFT
+                          Claim NFT certificate
                         </>
                       )}
                     </button>
@@ -423,17 +423,17 @@ export default function CourseModal({
                     </svg>
                   </div>
                   <div className="result-score">{testScore}%</div>
-                  <h3 className="result-title">Chưa đạt yêu cầu</h3>
+                  <h3 className="result-title">Didn’t pass yet</h3>
                   <p className="result-message">
-                    Bạn cần đạt ít nhất {courseData.passing_score || 70}% để nhận chứng chỉ. 
-                    Hãy ôn lại bài và thử lại nhé!
+                    You need at least {courseData.passing_score || 70}% to receive the certificate. 
+                    Review the lessons and try again!
                   </p>
                   <div className="result-actions">
                     <button
                       onClick={() => setShowTest(false)}
                       className="btn-secondary"
                     >
-                      Quay lại học
+                       Back to learning
                     </button>
                     <button
                       onClick={() => {
@@ -442,7 +442,7 @@ export default function CourseModal({
                       }}
                       className="btn-primary"
                     >
-                      Làm lại bài kiểm tra
+                       Retake quiz
                     </button>
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export default function CourseModal({
                 <div className="test-content">
                   <div className="test-progress">
                     <div className="progress-info">
-                      <span>Tiến độ: {testAnswers.filter(a => a !== -1).length}/{courseData.test_questions.length}</span>
+                       <span>Progress: {testAnswers.filter(a => a !== -1).length}/{courseData.test_questions.length}</span>
                     </div>
                     <div className="progress-bar">
                       <div 
@@ -465,9 +465,9 @@ export default function CourseModal({
                     {courseData.test_questions.map((question, qIndex) => (
                       <div key={qIndex} className={`question-card ${testAnswers[qIndex] !== -1 ? 'answered' : ''}`}>
                         <div className="question-header">
-                          <span className="question-number">Câu {qIndex + 1}</span>
+                           <span className="question-number">Question {qIndex + 1}</span>
                           {testAnswers[qIndex] !== -1 && (
-                            <span className="question-answered">✓ Đã trả lời</span>
+                             <span className="question-answered">✓ Answered</span>
                           )}
                         </div>
                         <h4 className="question-text">{question.question}</h4>
@@ -507,14 +507,14 @@ export default function CourseModal({
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                       </svg>
-                      Quay lại
+                       Go back
                     </button>
                     <button
                       onClick={handleSubmitTest}
                       disabled={testAnswers.some(a => a === -1)}
                       className="btn-submit"
                     >
-                      Nộp bài
+                       Submit quiz
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M9 5l7 7-7 7"/>
                       </svg>
@@ -543,11 +543,11 @@ export default function CourseModal({
                   </div>
                 </div>
                 {hasCertificate && (
-                  <div className="certificate-badge">
+                     <div className="certificate-badge">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    Đã hoàn thành
+                     Completed
                   </div>
                 )}
               </div>
@@ -555,17 +555,17 @@ export default function CourseModal({
               {/* Video Section */}
               <div className="video-section">
                 {moduleVideoUrls[currentModuleIndex] ? (
-                  <video
+                     <video
                     controls
                     className="video-player"
                     src={moduleVideoUrls[currentModuleIndex]!}
-                  >
-                    Trình duyệt của bạn không hỗ trợ video.
-                  </video>
+                     >
+                     Your browser does not support video.
+                   </video>
                 ) : (
-                  <div className="video-loading">
+                     <div className="video-loading">
                     <div className="loading-spinner"></div>
-                    <p>Đang tải video...</p>
+                     <p>Loading video...</p>
                   </div>
                 )}
               </div>
@@ -585,7 +585,7 @@ export default function CourseModal({
 
                 {/* Module Navigation */}
                 <div className="modules-nav">
-                  <h4 className="modules-nav-title">Danh sách bài học</h4>
+                   <h4 className="modules-nav-title">Lesson list</h4>
                   <div className="modules-list">
                     {courseData.modules.map((module, index) => (
                       <button
@@ -618,8 +618,8 @@ export default function CourseModal({
                 {/* Module Materials */}
                 {courseData.modules[currentModuleIndex]?.materials && 
                  courseData.modules[currentModuleIndex].materials!.length > 0 && (
-                  <div className="module-materials">
-                    <h4 className="materials-title">Tài liệu bài học</h4>
+                     <div className="module-materials">
+                     <h4 className="materials-title">Lesson materials</h4>
                     <div className="materials-list">
                       {courseData.modules[currentModuleIndex].materials!.map((material, index) => (
                         <a
@@ -644,14 +644,14 @@ export default function CourseModal({
               {/* Action Footer */}
               {hasTicket && !hasCertificate && (
                 <div className="learning-footer">
-                  <button
+                     <button
                     onClick={() => setShowTest(true)}
                     className="take-test-button"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
-                    Làm bài kiểm tra cuối khóa
+                     Take final quiz
                   </button>
                 </div>
               )}
@@ -683,19 +683,19 @@ export default function CourseModal({
                       <svg className="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                       </svg>
-                      <span><strong>{purchaseCount}</strong> học viên</span>
+                       <span><strong>{purchaseCount}</strong> learners</span>
                     </div>
                     <div className="stat-item">
                       <svg className="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                       </svg>
-                      <span><strong>{courseData.modules.length}</strong> bài học</span>
+                       <span><strong>{courseData.modules.length}</strong> lessons</span>
                     </div>
                     <div className="stat-item">
                       <svg className="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
-                      <span>Có chứng chỉ</span>
+                       <span>Includes certificate</span>
                     </div>
                   </div>
                 </div>
@@ -707,7 +707,7 @@ export default function CourseModal({
                   <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                   </svg>
-                  Nội dung khóa học
+                   Course content
                 </h3>
                 <div className="modules-preview">
                   {courseData.modules.map((module, index) => (
@@ -734,7 +734,7 @@ export default function CourseModal({
                   <svg className="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                   </svg>
-                  Giảng viên
+                   Instructor
                 </h3>
                 <div className="instructor-card-full">
                   <div className="instructor-header">
@@ -748,16 +748,16 @@ export default function CourseModal({
                           }}
                         />
                       ) : (
-                        (teacherProfile?.name || courseData.instructor_name || 'G').charAt(0).toUpperCase()
+                         (teacherProfile?.name || courseData.instructor_name || 'I').charAt(0).toUpperCase()
                       )}
                     </div>
                     <div className="instructor-main-info">
                       <div className="instructor-name-row">
                         <span className="instructor-name-text">
-                          {teacherProfile?.name || courseData.instructor_name || 'Giảng viên'}
+                           {teacherProfile?.name || courseData.instructor_name || 'Instructor'}
                         </span>
                         {teacherProfile && (
-                          <span className="verified-badge-large" title="Hồ sơ đã xác thực on-chain">
+                           <span className="verified-badge-large" title="Profile verified on-chain">
                             <svg viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                             </svg>
@@ -779,7 +779,7 @@ export default function CourseModal({
                   
                   {(teacherProfile?.about || courseData.instructor_about) && (
                     <div className="instructor-bio-section">
-                      <div className="bio-label">Giới thiệu</div>
+                       <div className="bio-label">About</div>
                       <p className="instructor-bio-text">
                         {teacherProfile?.about || courseData.instructor_about}
                       </p>
@@ -801,7 +801,7 @@ export default function CourseModal({
               {/* Price & Purchase */}
               <div className="purchase-footer">
                 <div className="price-section">
-                  <div className="price-label">Giá khóa học</div>
+                   <div className="price-label">Course price</div>
                   <div className="price-value">
                     <span className="price-sui">{formatSui(priceInSui)}</span>
                     <span className="price-vnd">≈ {formatVnd(suiToVnd(priceInSui))}</span>
@@ -818,14 +818,14 @@ export default function CourseModal({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                       </svg>
-                      Đang xử lý...
+                       Processing...
                     </>
                   ) : (
                     <>
                       <svg className="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                       </svg>
-                      Đăng ký ngay
+                       Enroll now
                     </>
                   )}
                 </button>

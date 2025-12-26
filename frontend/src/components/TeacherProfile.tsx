@@ -160,22 +160,22 @@ export default function TeacherProfile() {
   // Create new profile
   const handleCreateProfile = async () => {
     if (!currentAccount) {
-      alert('Vui lòng kết nối ví');
+      alert('Please connect your wallet');
       return;
     }
 
     if (!name.trim()) {
-      alert('Vui lòng nhập tên giảng viên');
+      alert('Please enter the instructor name');
       return;
     }
 
     if (!about.trim()) {
-      alert('Vui lòng nhập giới thiệu bản thân');
+      alert('Please enter a self-introduction');
       return;
     }
 
     if (!contacts.trim()) {
-      alert('Vui lòng nhập thông tin liên hệ');
+      alert('Please provide contact information');
       return;
     }
 
@@ -203,20 +203,20 @@ export default function TeacherProfile() {
         { transaction: tx },
         {
           onSuccess: async () => {
-            alert('Tạo hồ sơ giảng viên thành công!');
-            // Chuyển đến trang chủ
+            alert('Instructor profile created successfully!');
+            // Navigate to courses
             await new Promise(r => setTimeout(r, 1000));
             navigate('/courses');
           },
           onError: (error) => {
             console.error('Error creating profile:', error);
-            alert(`Lỗi: ${error.message}`);
+            alert(`Error: ${error.message}`);
           },
         }
       );
     } catch (error) {
       console.error('Error:', error);
-      alert(`Lỗi: ${error instanceof Error ? error.message : 'Đã xảy ra lỗi'}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'An error occurred'}`);
     } finally {
       setIsSaving(false);
     }
@@ -227,17 +227,17 @@ export default function TeacherProfile() {
     if (!profile) return;
 
     if (!name.trim()) {
-      alert('Vui lòng nhập tên giảng viên');
+      alert('Please enter the instructor name');
       return;
     }
 
     if (!about.trim()) {
-      alert('Vui lòng nhập giới thiệu bản thân');
+      alert('Please enter a self-introduction');
       return;
     }
 
     if (!contacts.trim()) {
-      alert('Vui lòng nhập thông tin liên hệ');
+      alert('Please provide contact information');
       return;
     }
 
@@ -266,7 +266,7 @@ export default function TeacherProfile() {
         { transaction: tx },
         {
           onSuccess: async () => {
-            alert('Cập nhật hồ sơ thành công!');
+            alert('Profile updated successfully!');
             setIsEditing(false);
             // Reload profile
             await new Promise(r => setTimeout(r, 2000));
@@ -274,13 +274,13 @@ export default function TeacherProfile() {
           },
           onError: (error) => {
             console.error('Error updating profile:', error);
-            alert(`Lỗi: ${error.message}`);
+            alert(`Error: ${error.message}`);
           },
         }
       );
     } catch (error) {
       console.error('Error:', error);
-      alert(`Lỗi: ${error instanceof Error ? error.message : 'Đã xảy ra lỗi'}`);
+      alert(`Error: ${error instanceof Error ? error.message : 'An error occurred'}`);
     } finally {
       setIsSaving(false);
     }
@@ -291,8 +291,8 @@ export default function TeacherProfile() {
       <div className="profile-page">
         <div className="profile-empty">
           <div className="empty-icon">🔐</div>
-          <h3>Chưa kết nối ví</h3>
-          <p>Vui lòng kết nối ví Sui để xem hồ sơ giảng viên</p>
+          <h3>Wallet not connected</h3>
+          <p>Please connect your Sui wallet to view your instructor profile</p>
         </div>
       </div>
     );
@@ -303,7 +303,7 @@ export default function TeacherProfile() {
       <div className="profile-page">
         <div className="profile-loading">
           <div className="spinner"></div>
-          <p>Đang tải hồ sơ...</p>
+          <p>Loading profile...</p>
         </div>
       </div>
     );
@@ -315,8 +315,8 @@ export default function TeacherProfile() {
       <div className="profile-page">
         <div className="profile-container">
           <div className="profile-header">
-            <h2>👨‍🏫 Tạo hồ sơ giảng viên</h2>
-            <p>Tạo hồ sơ để bắt đầu đăng khóa học trên SuiCert Academy</p>
+            <h2>👨‍🏫 Create instructor profile</h2>
+            <p>Create your profile to start publishing courses on SuiCert Academy</p>
           </div>
 
           <div className="profile-form">
@@ -332,7 +332,7 @@ export default function TeacherProfile() {
                   )}
                 </div>
                 <div className="avatar-input">
-                  <label className="form-label">Ảnh đại diện</label>
+                  <label className="form-label">Avatar</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -340,52 +340,52 @@ export default function TeacherProfile() {
                     className="form-file"
                     disabled={isSaving}
                   />
-                  <span className="form-help">Khuyến nghị: 200x200px</span>
+                   <span className="form-help">Recommended: 200x200px</span>
                 </div>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  Tên giảng viên <span className="required">*</span>
+                  Instructor name <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="form-input"
-                  placeholder="VD: Nguyễn Văn A"
+                  placeholder="e.g., Alex Nguyen"
                   disabled={isSaving}
                 />
-                <span className="form-help">Tên này sẽ hiển thị trên hồ sơ và khóa học của bạn</span>
+                 <span className="form-help">This name will appear on your profile and courses</span>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  Giới thiệu bản thân <span className="required">*</span>
+                  About you <span className="required">*</span>
                 </label>
                 <textarea
                   value={about}
                   onChange={(e) => setAbout(e.target.value)}
                   rows={4}
                   className="form-textarea"
-                  placeholder="VD: Kỹ sư blockchain với 5+ năm kinh nghiệm, đã phát triển nhiều dApp trên Sui Network. Chuyên về Move programming và DeFi protocols..."
+                  placeholder="e.g., Blockchain engineer with 5+ years of experience building dApps on Sui. Specializes in Move programming and DeFi protocols..."
                   disabled={isSaving}
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  Thông tin liên hệ <span className="required">*</span>
+                  Contact information <span className="required">*</span>
                 </label>
                 <textarea
                   value={contacts}
                   onChange={(e) => setContacts(e.target.value)}
                   rows={3}
                   className="form-textarea"
-                  placeholder="VD: Email: instructor@example.com&#10;Twitter: @yourhandle&#10;Telegram: @yourhandle"
+                  placeholder="e.g., Email: instructor@example.com&#10;Twitter: @yourhandle&#10;Telegram: @yourhandle"
                   disabled={isSaving}
                 />
-                <span className="form-help">Thông tin này sẽ hiển thị cho học viên đã mua khóa học của bạn</span>
+                 <span className="form-help">This will be visible to students who purchased your course</span>
               </div>
 
               <button
@@ -394,7 +394,7 @@ export default function TeacherProfile() {
                 className="btn btn-primary btn-lg"
                 disabled={isSaving}
               >
-                {isSaving ? 'Đang tạo hồ sơ...' : '✨ Tạo hồ sơ giảng viên'}
+                {isSaving ? 'Creating profile...' : '✨ Create instructor profile'}
               </button>
             </div>
           </div>
@@ -408,9 +408,9 @@ export default function TeacherProfile() {
     <div className="profile-page">
       <div className="profile-container">
         <div className="profile-header">
-          <h2>👨‍🏫 Hồ sơ giảng viên</h2>
+          <h2>👨‍🏫 Instructor profile</h2>
           <div className="profile-status">
-            <span className="status-badge status-verified">✓ Đã xác thực trên blockchain</span>
+            <span className="status-badge status-verified">✓ Verified on blockchain</span>
           </div>
         </div>
 
@@ -429,7 +429,7 @@ export default function TeacherProfile() {
                   )}
                 </div>
                 <div className="avatar-input">
-                  <label className="form-label">Ảnh đại diện</label>
+                  <label className="form-label">Avatar</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -442,21 +442,21 @@ export default function TeacherProfile() {
 
               <div className="form-group">
                 <label className="form-label">
-                  Tên giảng viên <span className="required">*</span>
+                  Instructor name <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="form-input"
-                  placeholder="VD: Nguyễn Văn A"
+                  placeholder="e.g., Alex Nguyen"
                   disabled={isSaving}
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  Giới thiệu bản thân <span className="required">*</span>
+                  About you <span className="required">*</span>
                 </label>
                 <textarea
                   value={about}
@@ -469,7 +469,7 @@ export default function TeacherProfile() {
 
               <div className="form-group">
                 <label className="form-label">
-                  Thông tin liên hệ <span className="required">*</span>
+                  Contact information <span className="required">*</span>
                 </label>
                 <textarea
                   value={contacts}
@@ -496,7 +496,7 @@ export default function TeacherProfile() {
                   className="btn btn-secondary"
                   disabled={isSaving}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -504,7 +504,7 @@ export default function TeacherProfile() {
                   className="btn btn-primary"
                   disabled={isSaving}
                 >
-                  {isSaving ? 'Đang lưu...' : '💾 Lưu thay đổi'}
+                  {isSaving ? 'Saving...' : '💾 Save changes'}
                 </button>
               </div>
             </div>
@@ -531,21 +531,21 @@ export default function TeacherProfile() {
               
               <div className="profile-info">
                 <div className="info-section">
-                  <h3 className="profile-display-name">{profile.name || 'Chưa có tên'}</h3>
+                  <h3 className="profile-display-name">{profile.name || 'No name yet'}</h3>
                 </div>
 
                 <div className="info-section">
-                  <h4>Giới thiệu</h4>
-                  <p>{profile.about || 'Chưa có thông tin'}</p>
+                  <h4>About</h4>
+                  <p>{profile.about || 'No information yet'}</p>
                 </div>
                 
                 <div className="info-section">
-                  <h4>Liên hệ</h4>
-                  <p className="contacts-text">{profile.contacts || 'Chưa có thông tin'}</p>
+                  <h4>Contact</h4>
+                  <p className="contacts-text">{profile.contacts || 'No information yet'}</p>
                 </div>
 
                 <div className="info-section">
-                  <h4>Địa chỉ ví</h4>
+                  <h4>Wallet address</h4>
                   <code className="wallet-address">{profile.owner}</code>
                 </div>
               </div>
@@ -555,7 +555,7 @@ export default function TeacherProfile() {
                 onClick={() => setIsEditing(true)}
                 className="btn btn-outline edit-btn"
               >
-                ✏️ Chỉnh sửa hồ sơ
+                ✏️ Edit profile
               </button>
             </div>
           </div>
@@ -564,20 +564,20 @@ export default function TeacherProfile() {
         {/* My Courses Section */}
         <div className="my-courses-section">
           <div className="section-header">
-            <h3>📚 Khóa học của tôi</h3>
-            <span className="course-count">{myCourses.length} khóa học</span>
+            <h3>📚 My courses</h3>
+            <span className="course-count">{myCourses.length} courses</span>
           </div>
 
           {loadingCourses ? (
             <div className="courses-loading">
               <div className="spinner small"></div>
-              <span>Đang tải khóa học...</span>
+              <span>Loading courses...</span>
             </div>
           ) : myCourses.length === 0 ? (
             <div className="courses-empty">
-              <p>Bạn chưa tạo khóa học nào.</p>
+              <p>You haven't created any courses yet.</p>
               <Link to="/create" className="btn btn-primary">
-                + Tạo khóa học đầu tiên
+                + Create your first course
               </Link>
             </div>
           ) : (

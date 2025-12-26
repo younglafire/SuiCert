@@ -164,7 +164,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           {checking ? (
             <div className="chip chip--muted loading-chip">
               <span className="spinner" />
-              Đang kiểm tra...
+              Checking access...
             </div>
           ) : hasCertificate ? (
             <div className="chip chip--success">
@@ -175,7 +175,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-              Đã hoàn thành
+               Completed
             </div>
           ) : hasTicket ? (
             <div className="chip chip--info">
@@ -186,7 +186,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-              Đã đăng ký
+               Enrolled
             </div>
           ) : (
             <div className="chip chip--muted">
@@ -198,7 +198,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                   />
                 </svg>
-              Chưa đăng ký
+               Not enrolled
             </div>
           )}
 
@@ -232,7 +232,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 if (hasCertificate) {
                   navigate('/profile');
                 } else if (hasTicket) {
-                  // Đã mua -> chuyển đến trang học tập
+                   // Purchased -> navigate to learning page
                   navigate(`/learn/${course.id}`);
                 } else {
                   setShowModal(true);
@@ -246,7 +246,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                   : 'course-card__cta--primary'
               }`}
             >
-              {hasCertificate ? 'Xem chứng chỉ' : hasTicket ? 'Vào học' : 'Đăng ký ngay'}
+               {hasCertificate ? 'View certificate' : hasTicket ? 'Start learning' : 'Enroll now'}
             </button>
           </div>
         </div>
@@ -274,4 +274,3 @@ export default function CourseCard({ course }: CourseCardProps) {
     </>
   );
 }
-
