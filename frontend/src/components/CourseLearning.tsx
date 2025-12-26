@@ -44,7 +44,7 @@ export default function CourseLearning() {
   useEffect(() => {
     async function loadCourse() {
       if (!courseId) {
-         setError('Course not found');
+        setError('Không tìm thấy khóa học');
         setLoading(false);
         return;
       }
@@ -78,11 +78,11 @@ export default function CourseLearning() {
             setTestAnswers(new Array(data.test_questions.length).fill(-1));
           }
         } else {
-           setError('Course not found');
+          setError('Không tìm thấy khóa học');
         }
       } catch (err) {
         console.error('Error loading course:', err);
-         setError('Unable to load course');
+        setError('Không thể tải khóa học');
       } finally {
         setLoading(false);
       }
@@ -195,7 +195,7 @@ export default function CourseLearning() {
     if (!courseData) return;
 
     if (testAnswers.some(answer => answer === -1)) {
-      alert('Please answer all questions');
+      alert('Vui lòng trả lời tất cả các câu hỏi');
       return;
     }
 
@@ -214,7 +214,7 @@ export default function CourseLearning() {
   // Issue certificate
   const handleIssueCertificate = async () => {
     if (!studentName.trim()) {
-      alert('Please enter your name');
+      alert('Vui lòng nhập tên của bạn');
       return;
     }
 
@@ -239,8 +239,8 @@ export default function CourseLearning() {
         return false;
       });
 
-       if (!ticket || !ticket.data) {
-         throw new Error('Course ticket not found');
+      if (!ticket || !ticket.data) {
+        throw new Error('Không tìm thấy vé khóa học');
       }
 
       const tx = new Transaction();
@@ -256,22 +256,22 @@ export default function CourseLearning() {
       signAndExecuteTransaction(
         { transaction: tx },
         {
-           onSuccess: () => {
-             alert('Congratulations! You received the course completion certificate.');
+          onSuccess: () => {
+            alert('Chúc mừng! Bạn đã nhận được chứng chỉ hoàn thành khóa học.');
             setHasCertificate(true);
             setHasTicket(false);
             navigate('/profile');
           },
           onError: (error) => {
-             console.error('Certificate error:', error);
-             alert(`Certificate issuance failed: ${error.message}`);
+            console.error('Certificate error:', error);
+            alert(`Cấp chứng chỉ thất bại: ${error.message}`);
             setIssuingCertificate(false);
           },
         }
       );
     } catch (err) {
-       console.error('Certificate error:', err);
-       alert(`Error: ${err instanceof Error ? err.message : 'An error occurred'}`);
+      console.error('Certificate error:', err);
+      alert(`Lỗi: ${err instanceof Error ? err.message : 'Đã xảy ra lỗi'}`);
       setIssuingCertificate(false);
     }
   };
@@ -281,8 +281,8 @@ export default function CourseLearning() {
       <div className="learning-page">
         <div className="learning-empty">
           <div className="empty-icon">🔐</div>
-          <h3>Wallet not connected</h3>
-          <p>Please connect your Sui wallet to access the course</p>
+          <h3>Chưa kết nối ví</h3>
+          <p>Vui lòng kết nối ví Sui để truy cập khóa học</p>
         </div>
       </div>
     );
@@ -293,7 +293,7 @@ export default function CourseLearning() {
       <div className="learning-page">
         <div className="learning-loading">
           <div className="spinner"></div>
-          <p>Loading course...</p>
+          <p>Đang tải khóa học...</p>
         </div>
       </div>
     );
@@ -304,8 +304,8 @@ export default function CourseLearning() {
       <div className="learning-page">
         <div className="learning-empty">
           <div className="empty-icon">❌</div>
-          <h3>{error || 'Course not found'}</h3>
-          <Link to="/" className="btn btn-primary">Back to home</Link>
+          <h3>{error || 'Không tìm thấy khóa học'}</h3>
+          <Link to="/" className="btn btn-primary">Quay về trang chủ</Link>
         </div>
       </div>
     );
@@ -316,9 +316,9 @@ export default function CourseLearning() {
       <div className="learning-page">
         <div className="learning-empty">
           <div className="empty-icon">🔒</div>
-          <h3>You have not enrolled in this course</h3>
-          <p>Please purchase the course to access its content</p>
-          <Link to="/" className="btn btn-primary">Back to home</Link>
+          <h3>Bạn chưa đăng ký khóa học này</h3>
+          <p>Vui lòng mua khóa học để truy cập nội dung</p>
+          <Link to="/" className="btn btn-primary">Quay về trang chủ</Link>
         </div>
       </div>
     );
@@ -335,7 +335,7 @@ export default function CourseLearning() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
-          Go back
+          Quay lại
         </Link>
         <div className="learning-title">
           <h1>{course.title}</h1>
@@ -343,15 +343,15 @@ export default function CourseLearning() {
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${progress}%` }}></div>
             </div>
-            <span>{progress}% complete</span>
+            <span>{progress}% hoàn thành</span>
           </div>
         </div>
-          {hasCertificate && (
+        {hasCertificate && (
           <div className="certificate-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            Completed
+            Đã hoàn thành
           </div>
         )}
       </div>
@@ -361,8 +361,8 @@ export default function CourseLearning() {
         <div className="learning-test">
           <div className="test-container">
             <div className="test-header">
-              <h2>📝 Final quiz</h2>
-              <p>Answer at least {courseData.passing_score || 70}% correctly to receive the certificate</p>
+              <h2>📝 Bài kiểm tra cuối khóa</h2>
+              <p>Trả lời đúng {courseData.passing_score || 70}% để nhận chứng chỉ</p>
             </div>
 
             {testSubmitted ? (
@@ -372,14 +372,14 @@ export default function CourseLearning() {
                 </div>
                 {testScore >= (courseData.passing_score || 70) ? (
                   <>
-                    <h3>🎉 Congrats! You passed the quiz</h3>
-                    <p>Enter your name to receive the Soulbound NFT certificate</p>
+                    <h3>🎉 Chúc mừng! Bạn đã vượt qua bài kiểm tra</h3>
+                    <p>Nhập tên để nhận chứng chỉ Soulbound NFT</p>
                     <div className="certificate-form">
                       <input
                         type="text"
                         value={studentName}
                         onChange={(e) => setStudentName(e.target.value)}
-                        placeholder="Name to display on the certificate"
+                        placeholder="Tên hiển thị trên chứng chỉ"
                         disabled={issuingCertificate}
                       />
                       <button
@@ -387,14 +387,14 @@ export default function CourseLearning() {
                         disabled={issuingCertificate || !studentName.trim()}
                         className="btn btn-primary"
                       >
-                        {issuingCertificate ? 'Issuing certificate...' : '🏆 Claim NFT certificate'}
+                        {issuingCertificate ? 'Đang cấp chứng chỉ...' : '🏆 Nhận chứng chỉ NFT'}
                       </button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <h3>😔 You did not reach the required score</h3>
-                    <p>You need at least {courseData.passing_score || 70}% to receive the certificate</p>
+                    <h3>😔 Chưa đạt điểm yêu cầu</h3>
+                    <p>Bạn cần đạt ít nhất {courseData.passing_score || 70}% để nhận chứng chỉ</p>
                     <button
                       onClick={() => {
                         setTestSubmitted(false);
@@ -402,7 +402,7 @@ export default function CourseLearning() {
                       }}
                       className="btn btn-secondary"
                     >
-                      Retake quiz
+                      Làm lại bài kiểm tra
                     </button>
                   </>
                 )}
@@ -411,7 +411,7 @@ export default function CourseLearning() {
               <div className="test-questions">
                 {courseData.test_questions.map((q, qIndex) => (
                   <div key={qIndex} className="question-card">
-                    <h4>Question {qIndex + 1}: {q.question}</h4>
+                    <h4>Câu {qIndex + 1}: {q.question}</h4>
                     <div className="options">
                       {q.options.map((option, oIndex) => (
                         <label key={oIndex} className={`option ${testAnswers[qIndex] === oIndex ? 'selected' : ''}`}>
@@ -432,13 +432,13 @@ export default function CourseLearning() {
                   </div>
                 ))}
                 <button onClick={handleSubmitTest} className="btn btn-primary btn-lg">
-                  Submit quiz
+                  Nộp bài kiểm tra
                 </button>
               </div>
             )}
 
             <button onClick={() => setShowTest(false)} className="btn btn-ghost back-to-learning">
-              ← Back to learning
+              ← Quay lại học tập
             </button>
           </div>
         </div>
@@ -451,7 +451,7 @@ export default function CourseLearning() {
               {loadingVideo ? (
                 <div className="video-loading">
                   <div className="spinner"></div>
-                  <p>Loading video...</p>
+                  <p>Đang tải video...</p>
                 </div>
               ) : moduleVideoUrl ? (
                 <video
@@ -461,14 +461,14 @@ export default function CourseLearning() {
                   className="video-element"
                 >
                   <source src={moduleVideoUrl} type="video/mp4" />
-                  Browser does not support video
+                  Trình duyệt không hỗ trợ video
                 </video>
               ) : (
                 <div className="video-placeholder">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polygon points="5 3 19 12 5 21 5 3"/>
                   </svg>
-                  <p>Video unavailable</p>
+                  <p>Video không khả dụng</p>
                 </div>
               )}
             </div>
@@ -486,11 +486,11 @@ export default function CourseLearning() {
                 disabled={currentModuleIndex === 0}
                 className="btn btn-secondary"
               >
-                ← Previous lesson
+                ← Bài trước
               </button>
               {currentModuleIndex === courseData.modules.length - 1 && !hasCertificate ? (
                 <button onClick={() => setShowTest(true)} className="btn btn-primary">
-                  📝 Take quiz
+                  📝 Làm bài kiểm tra
                 </button>
               ) : (
                 <button
@@ -498,7 +498,7 @@ export default function CourseLearning() {
                   disabled={currentModuleIndex === courseData.modules.length - 1}
                   className="btn btn-primary"
                 >
-                  Next lesson →
+                  Bài tiếp theo →
                 </button>
               )}
             </div>
@@ -506,7 +506,7 @@ export default function CourseLearning() {
 
           {/* Sidebar - Module List */}
           <div className="modules-sidebar">
-            <h3>📚 Lesson list</h3>
+            <h3>📚 Danh sách bài học</h3>
             <div className="module-list">
               {courseData.modules.map((module, index) => (
                 <div
@@ -533,7 +533,7 @@ export default function CourseLearning() {
             {/* Take Test Button */}
             {!hasCertificate && (
               <button onClick={() => setShowTest(true)} className="btn btn-test">
-                📝 Take final quiz
+                📝 Làm bài kiểm tra cuối khóa
               </button>
             )}
           </div>

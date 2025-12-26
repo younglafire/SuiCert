@@ -47,7 +47,7 @@ export default function MyCertificates() {
             const fields = obj.data.content.fields as any;
             
             // Try to get course name from course object
-            let courseName = 'Course';
+            let courseName = 'Khóa học';
             try {
               const courseObj = await suiClient.getObject({
                 id: fields.course_id,
@@ -55,7 +55,7 @@ export default function MyCertificates() {
               });
               if (courseObj.data?.content?.dataType === 'moveObject') {
                 const courseFields = courseObj.data.content.fields as any;
-                courseName = courseFields.title || 'Course';
+                courseName = courseFields.title || 'Khóa học';
               }
             } catch (e) {
               console.error('Error fetching course:', e);
@@ -83,23 +83,23 @@ export default function MyCertificates() {
     loadCertificates();
   }, [currentAccount?.address, suiClient]);
 
-   const getGradeInfo = (score: number) => {
-    if (score >= 90) return { grade: 'A+', color: '#10b981', bgGradient: 'linear-gradient(135deg, #10b981, #059669)', label: 'Excellent' };
-    if (score >= 80) return { grade: 'A', color: '#3b82f6', bgGradient: 'linear-gradient(135deg, #3b82f6, #2563eb)', label: 'Great' };
-    if (score >= 70) return { grade: 'B', color: '#8b5cf6', bgGradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', label: 'Good' };
-    return { grade: 'C', color: '#f59e0b', bgGradient: 'linear-gradient(135deg, #f59e0b, #d97706)', label: 'Pass' };
+  const getGradeInfo = (score: number) => {
+    if (score >= 90) return { grade: 'A+', color: '#10b981', bgGradient: 'linear-gradient(135deg, #10b981, #059669)', label: 'Xuất sắc' };
+    if (score >= 80) return { grade: 'A', color: '#3b82f6', bgGradient: 'linear-gradient(135deg, #3b82f6, #2563eb)', label: 'Giỏi' };
+    if (score >= 70) return { grade: 'B', color: '#8b5cf6', bgGradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', label: 'Khá' };
+    return { grade: 'C', color: '#f59e0b', bgGradient: 'linear-gradient(135deg, #f59e0b, #d97706)', label: 'Đạt' };
   };
 
   const formatDate = (timestamp: number) => {
     // Handle invalid or zero timestamps
     if (!timestamp || timestamp < 1000000000) {
-      return new Date().toLocaleDateString('en-US', {
+      return new Date().toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
       });
     }
-    return new Date(timestamp).toLocaleDateString('en-US', {
+    return new Date(timestamp).toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -111,7 +111,7 @@ export default function MyCertificates() {
       <div className="certificates-page">
         <div className="certificates-loading">
           <div className="loading-spinner"></div>
-          <p>Loading certificates...</p>
+          <p>Đang tải chứng chỉ...</p>
         </div>
       </div>
     );
@@ -124,15 +124,15 @@ export default function MyCertificates() {
         <div className="header-content">
           <div className="header-icon">🏆</div>
           <div className="header-text">
-            <h1>My certificates</h1>
-            <p>The Soulbound NFT certificates you have earned on-chain</p>
+            <h1>Chứng chỉ của tôi</h1>
+            <p>Các chứng chỉ Soulbound NFT bạn đã đạt được trên blockchain</p>
           </div>
         </div>
         {certificates.length > 0 && (
           <div className="header-stats">
             <div className="stat-box">
               <span className="stat-number">{certificates.length}</span>
-              <span className="stat-label">Certificates</span>
+              <span className="stat-label">Chứng chỉ</span>
             </div>
           </div>
         )}
@@ -148,13 +148,13 @@ export default function MyCertificates() {
               <circle cx="100" cy="80" r="15" fill="#94a3b8"/>
             </svg>
           </div>
-          <h3>No certificates yet</h3>
-          <p>Complete courses and pass the quizzes to earn Soulbound NFT certificates!</p>
+          <h3>Chưa có chứng chỉ nào</h3>
+          <p>Hoàn thành các khóa học và vượt qua bài kiểm tra để nhận chứng chỉ Soulbound NFT!</p>
           <a href="/" className="explore-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            Explore courses
+            Khám phá khóa học
           </a>
         </div>
       ) : (
@@ -210,7 +210,7 @@ export default function MyCertificates() {
                     </svg>
                     Soulbound NFT
                   </span>
-                  <span className="view-detail">View details →</span>
+                  <span className="view-detail">Xem chi tiết →</span>
                 </div>
               </div>
             );
@@ -232,27 +232,27 @@ export default function MyCertificates() {
             <div className="cert-display">
               <div className="cert-display-header">
                 <div className="cert-logo">🎓</div>
-                <h2>CERTIFICATE OF COMPLETION</h2>
+                <h2>CHỨNG CHỈ HOÀN THÀNH</h2>
                 <p className="cert-subtitle">SuiCert Academy</p>
               </div>
 
               <div className="cert-display-body">
-                <p className="cert-awarded-to">Awarded to</p>
+                <p className="cert-awarded-to">Được cấp cho</p>
                 <h3 className="cert-recipient">{selectedCert.studentName}</h3>
                 <p className="cert-completion-text">
-                  Has successfully completed the course
+                  Đã hoàn thành xuất sắc khóa học
                 </p>
                 <h4 className="cert-course-title">{selectedCert.courseName}</h4>
                 
                 <div className="cert-score-display">
                   <div className="score-circle" style={{ borderColor: getGradeInfo(selectedCert.testScore).color }}>
                     <span className="score-num">{selectedCert.testScore}%</span>
-                    <span className="score-label">Score</span>
+                    <span className="score-label">Điểm số</span>
                   </div>
                 </div>
 
                 <div className="cert-date-display">
-                  Completion date: {formatDate(selectedCert.completionDate)}
+                  Ngày hoàn thành: {formatDate(selectedCert.completionDate)}
                 </div>
               </div>
 
@@ -277,7 +277,7 @@ export default function MyCertificates() {
                     <polyline points="15 3 21 3 21 9"/>
                     <line x1="10" y1="14" x2="21" y2="3"/>
                   </svg>
-                  View on Sui Explorer
+                  Xem trên Sui Explorer
                 </a>
               </div>
             </div>

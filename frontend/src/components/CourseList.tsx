@@ -105,9 +105,9 @@ export default function CourseList() {
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
-          <h2 className="mt-4 text-xl font-semibold text-gray-900">Connect your wallet to view courses</h2>
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">Kết nối ví để xem khóa học</h2>
           <p className="mt-2 text-gray-600">
-            Please connect your Sui wallet to access courses
+            Vui lòng kết nối ví Sui của bạn để truy cập các khóa học
           </p>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function CourseList() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading courses...</p>
+          <p className="mt-4 text-gray-600">Đang tải khóa học...</p>
         </div>
       </div>
     );
@@ -129,7 +129,7 @@ export default function CourseList() {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h3 className="text-red-800 font-semibold">Failed to load data</h3>
+          <h3 className="text-red-800 font-semibold">Lỗi tải dữ liệu</h3>
           <p className="text-red-600 mt-2">{error}</p>
         </div>
       </div>
@@ -141,17 +141,17 @@ export default function CourseList() {
       <div className="course-hero">
         <div className="course-hero__copy">
           <p className="eyebrow">Soulbound NFT • Sui Network</p>
-          <h1 className="course-hero__title">Learn & earn on-chain certificates 🎓</h1>
+          <h1 className="course-hero__title">Học & Nhận chứng chỉ On-chain 🎓</h1>
           <p className="course-hero__subtitle">
-            Complete courses, pass the quiz, and receive Soulbound NFT certificates — permanently verified on the blockchain.
+            Hoàn thành khóa học, vượt qua bài kiểm tra và nhận chứng chỉ Soulbound NFT — xác thực vĩnh viễn trên blockchain, không thể giả mạo.
           </p>
-          <div className="course-hero__cta">Explore now</div>
+          <div className="course-hero__cta">Khám phá ngay</div>
         </div>
         <div className="course-hero__badge">✓ Verified</div>
       </div>
 
       <div className="course-section-head">
-        <h2>Featured courses</h2>
+        <h2>Khóa học nổi bật</h2>
         <span className="pill">Soulbound</span>
       </div>
 
@@ -170,8 +170,8 @@ export default function CourseList() {
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
             />
           </svg>
-           <h3 className="mt-4 text-lg font-semibold text-gray-900">No courses yet</h3>
-           <p className="mt-2 text-gray-600">Courses will appear here once they are created</p>
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">Chưa có khóa học nào</h3>
+          <p className="mt-2 text-gray-600">Các khóa học sẽ xuất hiện tại đây khi được tạo</p>
         </div>
       ) : (
         <div className="course-grid">

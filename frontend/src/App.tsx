@@ -77,7 +77,7 @@ function App() {
                   <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
               </span>
-              <span className="side-nav__label">Home</span>
+              <span className="side-nav__label">Trang chủ</span>
             </Link>
             <Link
               to="/my-courses"
@@ -88,7 +88,7 @@ function App() {
                   <polygon points="5 3 19 12 5 21 5 3"/>
                 </svg>
               </span>
-              <span className="side-nav__label">Learning</span>
+              <span className="side-nav__label">Học tập</span>
             </Link>
             <Link
               to="/create"
@@ -101,7 +101,7 @@ function App() {
                   <line x1="8" y1="12" x2="16" y2="12"/>
                 </svg>
               </span>
-              <span className="side-nav__label">Create course</span>
+              <span className="side-nav__label">Đăng khóa học</span>
             </Link>
             <Link
               to="/teacher-profile"
@@ -113,7 +113,7 @@ function App() {
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
               </span>
-              <span className="side-nav__label">Instructor profile</span>
+              <span className="side-nav__label">Hồ sơ giảng viên</span>
             </Link>
             <Link
               to="/profile"
@@ -125,7 +125,7 @@ function App() {
                   <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
               </span>
-              <span className="side-nav__label">Certificates</span>
+              <span className="side-nav__label">Chứng chỉ</span>
             </Link>
           </aside>
 
@@ -140,7 +140,7 @@ function App() {
             </Routes>
 
             <footer className="app-footer">
-              <p>Decentralized online learning platform on Sui Network</p>
+              <p>Nền tảng học trực tuyến phi tập trung trên Sui Network</p>
               <p>Powered by Walrus Storage &amp; Soulbound NFT Certificates</p>
             </footer>
           </div>
@@ -166,10 +166,10 @@ function App() {
           </div>
         </div>
         <nav className="header-nav">
-          <a href="#" className="nav-link active" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Home</a>
-          <a href="#courses" className="nav-link" onClick={(e) => { e.preventDefault(); document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' }); }}>Courses</a>
-          <a href="#guides" className="nav-link" onClick={(e) => { e.preventDefault(); document.getElementById('guides')?.scrollIntoView({ behavior: 'smooth' }); }}>Guides</a>
-          <a href="#about" className="nav-link" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }}>About us</a>
+          <a href="#" className="nav-link active" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Trang chủ</a>
+          <a href="#courses" className="nav-link" onClick={(e) => { e.preventDefault(); document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' }); }}>Khóa học</a>
+          <a href="#guides" className="nav-link" onClick={(e) => { e.preventDefault(); document.getElementById('guides')?.scrollIntoView({ behavior: 'smooth' }); }}>Hướng dẫn</a>
+          <a href="#about" className="nav-link" onClick={(e) => { e.preventDefault(); document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }); }}>Về chúng tôi</a>
         </nav>
         <div className="bar-actions">
           <div className="status-dot"></div>
@@ -200,12 +200,13 @@ function App() {
           <div className="hero-content">
           
             <h1>
-              Learn <span>Blockchain</span> with ease.<br/>
-              Earn permanent <span>NFT</span> certificates.
+              Học <span>Blockchain</span> dễ dàng.<br/>
+              Nhận chứng chỉ <span>NFT</span> vĩnh viễn.
             </h1>
             <p className="hero-desc">
-              The first decentralized e-learning platform on Sui Network. 
-              Finish courses and receive Soulbound NFT Certificates—tamper-proof proof of skill on the blockchain.
+              Nền tảng e-learning phi tập trung đầu tiên trên Sui Network. 
+              Hoàn thành khóa học và nhận Soulbound NFT Certificate - 
+              minh chứng kỹ năng không thể giả mạo trên blockchain.
             </p>
             <div className="hero-tags">
               <span className="tag">Sui Network</span>
@@ -225,7 +226,7 @@ function App() {
           <div className="category-pills">
             <button className="cat-pill">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
-              <span>All</span>
+              <span>Tất cả</span>
             </button>
             <button className="cat-pill active">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
@@ -260,7 +261,7 @@ function App() {
                 </div>
                 <div className="slide-info">
                   <span className="slide-price">0.02 SUI</span>
-                  <span className="slide-title">Sui Move basics</span>
+                  <span className="slide-title">Sui Move cơ bản</span>
                 </div>
               </div>
               <div className="carousel-slide">
@@ -301,10 +302,10 @@ function App() {
           
           <div className="featured-panel">
             <img src="/Happy student-amico.svg" alt="Featured" className="panel-illustration" />
-            <span className="panel-label">Featured courses</span>
-            <h3>Explore the world of Web3</h3>
-            <p>Learn from leading experts and earn tamper-proof NFT certificates.</p>
-            <button className="btn-panel" onClick={() => openConnectModal()}>View all courses</button>
+            <span className="panel-label">Khóa học nổi bật</span>
+            <h3>Khám phá thế giới Web3</h3>
+            <p>Học từ những chuyên gia hàng đầu, nhận chứng chỉ NFT độc quyền không thể giả mạo.</p>
+            <button className="btn-panel" onClick={() => openConnectModal()}>Xem tất cả khóa học</button>
           </div>
         </section>
 
@@ -315,33 +316,33 @@ function App() {
           </div>
           <div className="stats-table">
             <div className="stat-row">
-              <span className="stat-label">Learners</span>
+              <span className="stat-label">Học viên</span>
               <span className="stat-value">1,200+</span>
               <span className="stat-badge">Active</span>
             </div>
             <div className="stat-row">
-              <span className="stat-label">Courses</span>
+              <span className="stat-label">Khóa học</span>
               <span className="stat-value">50+</span>
               <span className="stat-badge blue">Courses</span>
             </div>
             <div className="stat-row">
-              <span className="stat-label">Certificates</span>
+              <span className="stat-label">Chứng chỉ</span>
               <span className="stat-value">800+</span>
               <span className="stat-badge green">NFTs</span>
             </div>
             <div className="stat-row">
-              <span className="stat-label">Instructors</span>
+              <span className="stat-label">Giảng viên</span>
               <span className="stat-value">25+</span>
               <span className="stat-badge purple">Experts</span>
             </div>
           </div>
           
           <div className="stats-info">
-            <h4>Why choose SuiCert?</h4>
-            <p>We provide a decentralized learning platform with certificates verified on-chain. Every achievement you make is recorded forever.</p>
+            <h4>Tại sao chọn SuiCert?</h4>
+            <p>Chúng tôi cung cấp nền tảng học tập phi tập trung với chứng chỉ được xác thực trên blockchain. Mọi thành tích của bạn đều được ghi nhận vĩnh viễn.</p>
             <div className="info-btns">
-              <button className="btn-info active" onClick={() => openConnectModal()}>Start learning</button>
-              <button className="btn-info" onClick={() => openConnectModal()}>Become an instructor</button>
+              <button className="btn-info active" onClick={() => openConnectModal()}>Đăng ký học</button>
+              <button className="btn-info" onClick={() => openConnectModal()}>Trở thành giảng viên</button>
             </div>
           </div>
         </section>
@@ -355,25 +356,25 @@ function App() {
               <div className="blog-img">
                 <img src="/Online learning-cuate.svg" alt="Wallet Guide" className="blog-illustration" />
               </div>
-               <h4>What is a wallet?</h4>
-               <p>Guide to creating and using Sui Wallet to join the ecosystem.</p>
-               <span className="blog-link">View details →</span>
+              <h4>Wallet là gì?</h4>
+              <p>Hướng dẫn tạo và sử dụng ví Sui Wallet để tham gia hệ sinh thái.</p>
+              <span className="blog-link">Xem chi tiết →</span>
             </div>
             <div className="blog-card" onClick={() => openConnectModal()}>
               <div className="blog-img">
                 <img src="/Exams-bro.svg" alt="NFT Certificate" className="blog-illustration" />
               </div>
               <h4>NFT Certificate</h4>
-               <p>Learn about Soulbound NFTs and how certificates are verified on-chain.</p>
-               <span className="blog-link">View details →</span>
+              <p>Tìm hiểu về Soulbound NFT và cách chứng chỉ được xác thực trên chain.</p>
+              <span className="blog-link">Xem chi tiết →</span>
             </div>
             <div className="blog-card" onClick={() => openConnectModal()}>
               <div className="blog-img">
                 <img src="/Knowledge-bro.svg" alt="Sui Move" className="blog-illustration" />
               </div>
-               <h4>Sui Move basics</h4>
-               <p>Learn the Move language to build smart contracts on Sui Network.</p>
-               <span className="blog-link">View details →</span>
+              <h4>Sui Move cơ bản</h4>
+              <p>Học ngôn ngữ Move để phát triển smart contract trên Sui Network.</p>
+              <span className="blog-link">Xem chi tiết →</span>
             </div>
           </div>
         </section>
@@ -384,8 +385,8 @@ function App() {
             <img src="/Shared goals-amico.svg" alt="Start Learning" className="cta-img" />
           </div>
           <div className="banner-content">
-            <h3>Ready to get started?</h3>
-            <p>Connect your wallet and explore hundreds of high-quality Web3 and Blockchain courses.</p>
+            <h3>Sẵn sàng bắt đầu?</h3>
+            <p>Kết nối ví và khám phá hàng trăm khóa học chất lượng cao về Web3 và Blockchain.</p>
           </div>
           <ConnectButton />
         </section>
@@ -401,7 +402,7 @@ function App() {
                 <small>On-chain academy</small>
               </div>
             </div>
-            <p className="footer-desc">Decentralized learning on Sui Network. Learn, take tests, and earn NFT certificates.</p>
+            <p className="footer-desc">Nền tảng học tập phi tập trung trên Sui Network. Học, kiểm tra và nhận chứng chỉ NFT.</p>
             <div className="social-links">
               <a href="#" className="social-link" aria-label="Discord">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
@@ -419,21 +420,21 @@ function App() {
           </div>
           <div className="footer-nav">
             <div className="footer-col">
-               <h5>Products</h5>
-               <a href="#">Courses</a>
-               <a href="#">NFT certificates</a>
-               <a href="#">Instructors</a>
+              <h5>Sản phẩm</h5>
+              <a href="#">Khóa học</a>
+              <a href="#">Chứng chỉ NFT</a>
+              <a href="#">Giảng viên</a>
               <a href="#">Roadmap</a>
             </div>
             <div className="footer-col">
-               <h5>Resources</h5>
-               <a href="#">Guides</a>
+              <h5>Tài nguyên</h5>
+              <a href="#">Hướng dẫn</a>
               <a href="#">Documentation</a>
               <a href="#">FAQ</a>
               <a href="#">Blog</a>
             </div>
             <div className="footer-col">
-               <h5>Contact</h5>
+              <h5>Liên hệ</h5>
               <a href="#">support@suicert.io</a>
               <a href="#">Discord Community</a>
               <a href="#">Twitter/X</a>
@@ -444,9 +445,9 @@ function App() {
         <div className="footer-bottom-new">
           <p>© 2024 SuiCert Academy. Built with ❤️ on Sui Network.</p>
           <div className="footer-legal">
-             <a href="#">Terms</a>
-             <a href="#">Privacy</a>
-             <a href="#">Cookies</a>
+            <a href="#">Điều khoản</a>
+            <a href="#">Bảo mật</a>
+            <a href="#">Cookie</a>
           </div>
         </div>
       </footer>
